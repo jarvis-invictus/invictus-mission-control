@@ -395,7 +395,7 @@ function FileTreeNode({
       className={clsx(
         "flex items-center gap-1.5 w-full px-2 py-1.5 text-left text-sm rounded transition-all",
         isSelected
-          ? "bg-brand-600/20 text-brand-300 border-l-2 border-brand-500"
+          ? "bg-brand-400/20 text-brand-300 border-l-2 border-brand-500"
           : "text-zinc-400 hover:bg-surface-3 hover:text-white border-l-2 border-transparent"
       )}
       style={{ paddingLeft: `${depth * 16 + 8}px` }}
@@ -490,7 +490,7 @@ function MemoryTimeline({
         </div>
         <button
           onClick={onCreateMemory}
-          className="flex items-center gap-1.5 px-3 py-2 bg-brand-600/20 text-brand-400 rounded-lg text-sm font-medium hover:bg-brand-600/30 transition-colors border border-brand-600/20"
+          className="flex items-center gap-1.5 px-3 py-2 bg-brand-400/20 text-brand-400 rounded-lg text-sm font-medium hover:bg-brand-400/30 transition-colors border border-brand-400/20"
         >
           <Plus className="w-4 h-4" /> Add Memory
         </button>
@@ -772,7 +772,7 @@ export default function AgentWorkspace() {
               className={clsx(
                 "flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all border",
                 isActive
-                  ? "bg-brand-600/20 text-white border-brand-500/40 shadow-[0_0_12px_rgba(76,110,245,0.15)]"
+                  ? "bg-brand-400/20 text-white border-brand-500/40 shadow-[0_0_12px_rgba(204,255,0,0.15)]"
                   : "bg-surface-2 text-zinc-400 border-surface-4 hover:text-white hover:border-surface-3"
               )}
             >
@@ -829,7 +829,7 @@ export default function AgentWorkspace() {
             className={clsx(
               "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all border",
               "bg-surface-2 border-surface-4 hover:border-surface-3",
-              selectedFile?.filename === qf.key ? "text-white border-brand-500/40 bg-brand-600/10" : "text-zinc-400 hover:text-white"
+              selectedFile?.filename === qf.key ? "text-white border-brand-500/40 bg-brand-400/10" : "text-zinc-400 hover:text-white"
             )}
           >
             <span>{qf.icon}</span>
@@ -841,7 +841,7 @@ export default function AgentWorkspace() {
           className={clsx(
             "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all border",
             "bg-surface-2 border-surface-4 hover:border-surface-3",
-            showMemoryTimeline ? "text-white border-brand-500/40 bg-brand-600/10" : "text-zinc-400 hover:text-white"
+            showMemoryTimeline ? "text-white border-brand-500/40 bg-brand-400/10" : "text-zinc-400 hover:text-white"
           )}
         >
           <Clock className="w-3.5 h-3.5" />
@@ -918,7 +918,7 @@ export default function AgentWorkspace() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="text-sm font-bold text-white truncate">{selectedFile.filename}</h3>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-600/20 text-brand-400 font-medium flex-shrink-0">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-400/20 text-brand-400 font-medium flex-shrink-0">
                         {currentAgentInfo?.name || selectedAgent}
                       </span>
                       {hasUnsavedChanges && (
@@ -1010,7 +1010,7 @@ export default function AgentWorkspace() {
                           className={clsx(
                             "flex items-center gap-1 px-4 py-1.5 text-xs font-medium rounded-lg transition-all",
                             hasUnsavedChanges
-                              ? "bg-brand-600 text-white hover:bg-brand-500"
+                              ? "bg-brand-400 text-black hover:bg-brand-300"
                               : "bg-surface-3 text-zinc-500 cursor-not-allowed"
                           )}
                         >

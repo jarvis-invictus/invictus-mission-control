@@ -41,16 +41,16 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-surface-0 flex items-center justify-center p-4">
       {/* Background grid effect */}
-      <div className="fixed inset-0 bg-[linear-gradient(rgba(76,110,245,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(76,110,245,0.03)_1px,transparent_1px)] bg-[size:60px_60px]" />
+      <div className="fixed inset-0 bg-[linear-gradient(rgba(204,255,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(204,255,0,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
 
       {/* Radial glow */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-600/5 rounded-full blur-[120px]" />
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-400/5 rounded-full blur-[120px]" />
 
       <div className="relative z-10 w-full max-w-[400px]">
         {/* Logo */}
         <div className="flex flex-col items-center mb-10">
-          <div className="w-14 h-14 rounded-2xl bg-brand-600 flex items-center justify-center mb-5 shadow-lg shadow-brand-600/20">
-            <Zap className="w-7 h-7 text-white" />
+          <div className="w-14 h-14 rounded-2xl bg-brand-400 flex items-center justify-center mb-5 shadow-lg shadow-brand-400/20">
+            <Zap className="w-7 h-7 text-black" />
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">
             Invictus AI
@@ -80,7 +80,7 @@ export default function LoginPage() {
                 }}
                 placeholder="Clearance code"
                 autoFocus
-                className="w-full px-4 py-3 bg-surface-2 border border-white/5 rounded-xl text-white placeholder-zinc-600 text-sm outline-none focus:border-brand-600/50 focus:ring-1 focus:ring-brand-600/20 transition-all"
+                className="w-full px-4 py-3 bg-surface-2 border border-white/5 rounded-xl text-white placeholder-zinc-600 text-sm outline-none focus:border-brand-400/50 focus:ring-1 focus:ring-brand-400/20 transition-all"
               />
             </div>
 
@@ -94,10 +94,10 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading || !password}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-brand-600 hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-white text-sm font-medium transition-all"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-brand-400 hover:bg-brand-300 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-black font-semibold text-sm font-medium transition-all"
             >
               {loading ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
               ) : (
                 <>
                   Enter Mission Control

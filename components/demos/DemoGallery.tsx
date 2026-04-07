@@ -246,7 +246,7 @@ export default function DemoGallery() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Filter dental demos…"
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-2 border border-white/5 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand-600/40"
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-2 border border-white/5 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand-400/40"
         />
       </div>
 
@@ -268,7 +268,7 @@ export default function DemoGallery() {
                   "relative rounded-2xl overflow-hidden border transition-shadow bg-surface-1/80 backdrop-blur-md",
                   isPremium
                     ? "border-amber-500/30 shadow-[0_0_40px_-12px_rgba(245,158,11,0.25)]"
-                    : "border-white/10 shadow-[0_0_30px_-12px_rgba(76,110,245,0.18)]"
+                    : "border-white/10 shadow-[0_0_30px_-12px_rgba(204,255,0,0.18)]"
                 )}
               >
                 {isPremium && (
@@ -292,7 +292,7 @@ export default function DemoGallery() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-surface-1 via-transparent to-transparent" />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity px-4 py-2 bg-brand-400 text-black text-sm font-medium rounded-lg">
                       Live Preview
                     </span>
                   </div>
@@ -331,7 +331,7 @@ export default function DemoGallery() {
                         "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition",
                         isPremium
                           ? "bg-gradient-to-r from-amber-500 to-amber-600 text-black hover:brightness-110"
-                          : "bg-brand-600 text-white hover:bg-brand-700"
+                          : "bg-brand-400 text-black hover:bg-brand-500"
                       )}
                     >
                       <ExternalLink className="w-3.5 h-3.5" /> Preview
@@ -444,7 +444,7 @@ export default function DemoGallery() {
             return (
               <div
                 key={v.file}
-                className="group relative rounded-xl overflow-hidden border border-white/5 bg-surface-1/70 backdrop-blur-sm hover:border-brand-500/40 hover:shadow-[0_0_24px_-6px_rgba(76,110,245,0.35)] transition-all duration-300"
+                className="group relative rounded-xl overflow-hidden border border-white/5 bg-surface-1/70 backdrop-blur-sm hover:border-brand-500/40 hover:shadow-[0_0_24px_-6px_rgba(204,255,0,0.35)] transition-all duration-300"
               >
                 {/* Clickable thumbnail */}
                 <button
@@ -461,7 +461,7 @@ export default function DemoGallery() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-surface-1 via-transparent to-transparent opacity-60" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-                    <span className="px-3 py-1.5 bg-brand-600 text-white text-xs font-medium rounded-lg">
+                    <span className="px-3 py-1.5 bg-brand-400 text-black text-xs font-medium rounded-lg">
                       Preview
                     </span>
                   </div>

@@ -85,14 +85,14 @@ export default function Sidebar() {
   return (
     <aside
       className={clsx(
-        "flex flex-col bg-surface-1 border-r border-white/5 transition-all duration-300 h-full",
+        "flex flex-col bg-surface-1 border-r border-surface-5 transition-all duration-300 h-full",
         collapsed ? "w-[68px]" : "w-[260px]"
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 h-16 border-b border-white/5 flex-shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center flex-shrink-0">
-          <Zap className="w-4 h-4 text-white" />
+      <div className="flex items-center gap-3 px-4 h-16 border-b border-surface-5 flex-shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-brand-400 flex items-center justify-center flex-shrink-0">
+          <Zap className="w-4 h-4 text-black" />
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
@@ -105,10 +105,10 @@ export default function Sidebar() {
       {/* Search */}
       {!collapsed && (
         <div className="px-3 py-3 flex-shrink-0">
-          <div className="flex items-center gap-2 px-3 py-2 bg-surface-2 rounded-lg text-zinc-500 text-sm cursor-pointer hover:bg-surface-3 transition-colors">
+          <div className="flex items-center gap-2 px-3 py-2 bg-surface-2 rounded-lg text-zinc-500 text-sm cursor-pointer hover:bg-surface-3 transition-colors border border-surface-5">
             <Search className="w-4 h-4" />
             <span>Search everything...</span>
-            <kbd className="ml-auto text-[10px] px-1.5 py-0.5 bg-surface-4 rounded text-zinc-600">⌘K</kbd>
+            <kbd className="ml-auto text-[10px] px-1.5 py-0.5 bg-surface-4 rounded text-zinc-600 border border-surface-5">⌘K</kbd>
           </div>
         </div>
       )}
@@ -125,7 +125,7 @@ export default function Sidebar() {
               </div>
             )}
             {collapsed && idx > 0 && (
-              <div className="mx-3 my-2 border-t border-white/5" />
+              <div className="mx-3 my-2 border-t border-surface-5" />
             )}
             <div className="space-y-0.5">
               {section.items.map((item) => {
@@ -137,8 +137,8 @@ export default function Sidebar() {
                     className={clsx(
                       "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all",
                       active
-                        ? "bg-brand-600/10 text-brand-400 font-medium"
-                        : "text-zinc-400 hover:bg-surface-2 hover:text-zinc-200"
+                        ? "bg-brand-400/10 text-brand-400 font-medium brand-glow"
+                        : "text-zinc-400 hover:bg-surface-3 hover:text-zinc-200"
                     )}
                   >
                     <item.icon className={clsx("w-[18px] h-[18px] flex-shrink-0", active && "text-brand-400")} />
@@ -152,10 +152,10 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="px-2 py-2 border-t border-white/5 flex-shrink-0 space-y-0.5">
+      <div className="px-2 py-2 border-t border-surface-5 flex-shrink-0 space-y-0.5">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-500 hover:bg-surface-2 hover:text-zinc-300 transition-all w-full"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-500 hover:bg-surface-3 hover:text-zinc-300 transition-all w-full"
         >
           {collapsed ? <ChevronRight className="w-[18px] h-[18px]" /> : <ChevronLeft className="w-[18px] h-[18px]" />}
           {!collapsed && <span>Collapse</span>}

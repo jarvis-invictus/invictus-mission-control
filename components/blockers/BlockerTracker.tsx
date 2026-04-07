@@ -183,7 +183,7 @@ function AddBlockerForm({ onAdd, onCancel }: { onAdd: (b: Blocker) => void; onCa
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-surface-2 border border-brand-600/30 rounded-xl p-5 space-y-4">
+    <form onSubmit={handleSubmit} className="bg-surface-2 border border-brand-400/30 rounded-xl p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-white">Add New Blocker</h3>
         <button type="button" onClick={onCancel} className="p-1 hover:bg-surface-3 rounded-lg">
@@ -195,18 +195,18 @@ function AddBlockerForm({ onAdd, onCancel }: { onAdd: (b: Blocker) => void; onCa
         <input
           value={title} onChange={e => setTitle(e.target.value)}
           placeholder="Blocker title *"
-          className="col-span-full px-3 py-2 bg-surface-3 border border-white/5 rounded-lg text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-brand-600/50"
+          className="col-span-full px-3 py-2 bg-surface-3 border border-white/5 rounded-lg text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-brand-400/50"
           required
         />
         <textarea
           value={description} onChange={e => setDescription(e.target.value)}
           placeholder="Description"
           rows={2}
-          className="col-span-full px-3 py-2 bg-surface-3 border border-white/5 rounded-lg text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-brand-600/50 resize-none"
+          className="col-span-full px-3 py-2 bg-surface-3 border border-white/5 rounded-lg text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-brand-400/50 resize-none"
         />
         <select
           value={severity} onChange={e => setSeverity(e.target.value as Severity)}
-          className="px-3 py-2 bg-surface-3 border border-white/5 rounded-lg text-sm text-zinc-200 focus:outline-none focus:border-brand-600/50"
+          className="px-3 py-2 bg-surface-3 border border-white/5 rounded-lg text-sm text-zinc-200 focus:outline-none focus:border-brand-400/50"
         >
           <option value="CRITICAL">Critical</option>
           <option value="HIGH">High</option>
@@ -216,12 +216,12 @@ function AddBlockerForm({ onAdd, onCancel }: { onAdd: (b: Blocker) => void; onCa
         <input
           value={owner} onChange={e => setOwner(e.target.value)}
           placeholder="Owner"
-          className="px-3 py-2 bg-surface-3 border border-white/5 rounded-lg text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-brand-600/50"
+          className="px-3 py-2 bg-surface-3 border border-white/5 rounded-lg text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-brand-400/50"
         />
         <input
           value={impact} onChange={e => setImpact(e.target.value)}
           placeholder="Impact description"
-          className="px-3 py-2 bg-surface-3 border border-white/5 rounded-lg text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-brand-600/50"
+          className="px-3 py-2 bg-surface-3 border border-white/5 rounded-lg text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-brand-400/50"
         />
         <div className="flex items-center gap-2">
           <label className="text-xs text-zinc-500">Impact:</label>
@@ -240,7 +240,7 @@ function AddBlockerForm({ onAdd, onCancel }: { onAdd: (b: Blocker) => void; onCa
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors"
+          className="px-4 py-2 bg-brand-400 hover:bg-brand-300 text-black font-semibold text-sm font-medium rounded-lg transition-colors"
         >
           Add Blocker
         </button>
@@ -364,7 +364,7 @@ export default function BlockerTracker() {
         </div>
         <button
           onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-brand-400 hover:bg-brand-300 text-black font-semibold text-sm font-medium rounded-xl transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Blocker
@@ -422,7 +422,7 @@ export default function BlockerTracker() {
             className={clsx(
               "px-3 py-1.5 rounded-lg text-xs font-medium transition-all border",
               filter === f.key
-                ? "bg-brand-600/20 text-brand-400 border-brand-600/30"
+                ? "bg-brand-400/20 text-brand-400 border-brand-400/30"
                 : "bg-surface-2 text-zinc-400 border-white/5 hover:bg-surface-3 hover:text-zinc-300"
             )}
           >
@@ -436,7 +436,7 @@ export default function BlockerTracker() {
           className={clsx(
             "px-3 py-1.5 rounded-lg text-xs font-medium transition-all border",
             ownerFilter === "all"
-              ? "bg-brand-600/20 text-brand-400 border-brand-600/30"
+              ? "bg-brand-400/20 text-brand-400 border-brand-400/30"
               : "bg-surface-2 text-zinc-400 border-white/5 hover:bg-surface-3"
           )}
         >
@@ -449,7 +449,7 @@ export default function BlockerTracker() {
             className={clsx(
               "px-3 py-1.5 rounded-lg text-xs font-medium transition-all border",
               ownerFilter === o
-                ? "bg-brand-600/20 text-brand-400 border-brand-600/30"
+                ? "bg-brand-400/20 text-brand-400 border-brand-400/30"
                 : "bg-surface-2 text-zinc-400 border-white/5 hover:bg-surface-3"
             )}
           >
@@ -514,16 +514,16 @@ export default function BlockerTracker() {
                   <div className="ml-5 mb-3 space-y-2">
                     <textarea
                       value={editDesc} onChange={e => setEditDesc(e.target.value)}
-                      className="w-full px-3 py-2 bg-surface-3 border border-white/10 rounded-lg text-xs text-zinc-200 resize-none focus:outline-none focus:border-brand-600/50"
+                      className="w-full px-3 py-2 bg-surface-3 border border-white/10 rounded-lg text-xs text-zinc-200 resize-none focus:outline-none focus:border-brand-400/50"
                       rows={2}
                     />
                     <div className="flex items-center gap-2">
                       <input
                         value={editOwner} onChange={e => setEditOwner(e.target.value)}
-                        className="px-3 py-1.5 bg-surface-3 border border-white/10 rounded-lg text-xs text-zinc-200 focus:outline-none focus:border-brand-600/50"
+                        className="px-3 py-1.5 bg-surface-3 border border-white/10 rounded-lg text-xs text-zinc-200 focus:outline-none focus:border-brand-400/50"
                         placeholder="Owner"
                       />
-                      <button onClick={() => saveEdit(blocker.id)} className="px-3 py-1.5 bg-brand-600 text-white text-xs rounded-lg hover:bg-brand-700">Save</button>
+                      <button onClick={() => saveEdit(blocker.id)} className="px-3 py-1.5 bg-brand-400 text-black text-xs rounded-lg hover:bg-brand-500">Save</button>
                       <button onClick={() => setEditingId(null)} className="px-3 py-1.5 text-zinc-400 text-xs hover:text-zinc-200">Cancel</button>
                     </div>
                   </div>
@@ -572,7 +572,7 @@ export default function BlockerTracker() {
                       </button>
                       <button
                         onClick={() => cycleStatus(blocker.id)}
-                        className="px-3 py-1.5 bg-brand-600/20 hover:bg-brand-600/30 text-brand-400 text-xs rounded-lg border border-brand-600/20 transition-colors"
+                        className="px-3 py-1.5 bg-brand-400/20 hover:bg-brand-400/30 text-brand-400 text-xs rounded-lg border border-brand-400/20 transition-colors"
                       >
                         Advance Status →
                       </button>

@@ -267,15 +267,15 @@ export default function ActivityLog() {
         smooth: true,
         symbol: "circle",
         symbolSize: 6,
-        lineStyle: { color: "#4c6ef5", width: 2.5 },
-        itemStyle: { color: "#4c6ef5" },
+        lineStyle: { color: "#CCFF00", width: 2.5 },
+        itemStyle: { color: "#CCFF00" },
         areaStyle: {
           color: {
             type: "linear" as const,
             x: 0, y: 0, x2: 0, y2: 1,
             colorStops: [
-              { offset: 0, color: "rgba(76,110,245,0.3)" },
-              { offset: 1, color: "rgba(76,110,245,0.02)" },
+              { offset: 0, color: "rgba(204,255,0,0.3)" },
+              { offset: 1, color: "rgba(204,255,0,0.02)" },
             ],
           },
         },
@@ -313,7 +313,7 @@ export default function ActivityLog() {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-brand-600/10 border border-brand-600/20 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-brand-400/10 border border-brand-400/20 flex items-center justify-center">
             <Activity className="w-5 h-5 text-brand-400" />
           </div>
           <div>
@@ -366,7 +366,7 @@ export default function ActivityLog() {
               className={clsx(
                 "px-3 py-1.5 rounded-lg text-xs font-medium transition-all border",
                 timeFilter === f.key
-                  ? "bg-brand-600/20 text-brand-400 border-brand-600/30"
+                  ? "bg-brand-400/20 text-brand-400 border-brand-400/30"
                   : "bg-surface-2 text-zinc-400 border-white/5 hover:bg-surface-3 hover:text-zinc-300"
               )}
             >
@@ -385,7 +385,7 @@ export default function ActivityLog() {
               className={clsx(
                 "px-3 py-1.5 rounded-lg text-xs font-medium transition-all border",
                 typeFilter === f.key
-                  ? "bg-brand-600/20 text-brand-400 border-brand-600/30"
+                  ? "bg-brand-400/20 text-brand-400 border-brand-400/30"
                   : "bg-surface-2 text-zinc-400 border-white/5 hover:bg-surface-3 hover:text-zinc-300"
               )}
             >

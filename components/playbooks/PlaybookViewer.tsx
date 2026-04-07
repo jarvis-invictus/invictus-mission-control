@@ -168,7 +168,7 @@ function CreatePlaybookModal({ onClose, onCreated }: { onClose: () => void; onCr
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. New Client Follow-up Sequence"
-              className="w-full bg-surface-0 border border-white/5 rounded-lg px-3 py-2.5 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-brand-600/50 transition-colors"
+              className="w-full bg-surface-0 border border-white/5 rounded-lg px-3 py-2.5 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-brand-400/50 transition-colors"
             />
           </div>
 
@@ -177,7 +177,7 @@ function CreatePlaybookModal({ onClose, onCreated }: { onClose: () => void; onCr
             <select
               value={dept}
               onChange={(e) => setDept(e.target.value as Department)}
-              className="w-full bg-surface-0 border border-white/5 rounded-lg px-3 py-2.5 text-sm text-zinc-200 outline-none focus:border-brand-600/50 transition-colors"
+              className="w-full bg-surface-0 border border-white/5 rounded-lg px-3 py-2.5 text-sm text-zinc-200 outline-none focus:border-brand-400/50 transition-colors"
             >
               {ALL_DEPARTMENTS.map((d) => (
                 <option key={d} value={d}>{d}</option>
@@ -192,7 +192,7 @@ function CreatePlaybookModal({ onClose, onCreated }: { onClose: () => void; onCr
               onChange={(e) => setBody(e.target.value)}
               placeholder="Write your playbook content here (Markdown supported)..."
               rows={8}
-              className="w-full bg-surface-0 border border-white/5 rounded-lg px-3 py-2.5 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-brand-600/50 transition-colors resize-none"
+              className="w-full bg-surface-0 border border-white/5 rounded-lg px-3 py-2.5 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-brand-400/50 transition-colors resize-none"
             />
           </div>
 
@@ -208,7 +208,7 @@ function CreatePlaybookModal({ onClose, onCreated }: { onClose: () => void; onCr
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-brand-400 hover:bg-brand-300 text-black font-semibold rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
               {saving ? "Saving..." : "Create"}
@@ -374,7 +374,7 @@ export default function PlaybookViewer() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-600/15 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-brand-400/15 flex items-center justify-center">
             <BookOpen className="w-5 h-5 text-brand-400" />
           </div>
           <div>
@@ -387,7 +387,7 @@ export default function PlaybookViewer() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 rounded-lg text-sm text-white font-medium transition-colors"
+            className="flex items-center gap-2 px-3.5 py-2 bg-brand-400 hover:bg-brand-500 rounded-lg text-sm text-white font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
             Create Playbook
@@ -404,7 +404,7 @@ export default function PlaybookViewer() {
       </div>
 
       {/* Search */}
-      <div className="flex items-center gap-2 px-4 py-3 bg-surface-2 rounded-xl text-zinc-500 border border-white/5 focus-within:border-brand-600/50 transition-colors max-w-xl">
+      <div className="flex items-center gap-2 px-4 py-3 bg-surface-2 rounded-xl text-zinc-500 border border-white/5 focus-within:border-brand-400/50 transition-colors max-w-xl">
         <Search className="w-5 h-5 flex-shrink-0" />
         <input
           type="text"
@@ -431,7 +431,7 @@ export default function PlaybookViewer() {
               className={clsx(
                 "px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap",
                 activeTab === tab
-                  ? "bg-brand-600/20 text-brand-400 border border-brand-600/30"
+                  ? "bg-brand-400/20 text-brand-400 border border-brand-400/30"
                   : "bg-surface-2 text-zinc-500 hover:text-zinc-300 border border-white/5 hover:border-white/10"
               )}
             >

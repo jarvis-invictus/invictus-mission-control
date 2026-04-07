@@ -5,8 +5,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --background: #0a0a0f;
+  --background: #000000;
   --foreground: #e4e4e7;
+  --brand: #CCFF00;
+  --brand-dim: rgba(204, 255, 0, 0.1);
+  --brand-glow: rgba(204, 255, 0, 0.15);
 }
 
 body {
@@ -17,9 +20,22 @@ body {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #111118; }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #555; }
+::-webkit-scrollbar-track { background: #0a0a0f; }
+::-webkit-scrollbar-thumb { background: #262630; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #333; }
 
 /* Smooth transitions */
 * { transition: background-color 0.15s ease, border-color 0.15s ease; }
+
+/* Brand glow effect for active elements */
+.brand-glow {
+  box-shadow: 0 0 20px rgba(204, 255, 0, 0.08);
+}
+
+/* Lemon green gradient text */
+.text-brand-gradient {
+  background: linear-gradient(135deg, #CCFF00, #a3cc00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

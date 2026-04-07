@@ -193,7 +193,7 @@ function ActiveAgentCard({
             )}
           />
           <h3 className="text-base font-semibold text-white">{agent.name}</h3>
-          <span className="text-[10px] font-bold tracking-wide uppercase bg-brand-600/20 text-brand-400 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] font-bold tracking-wide uppercase bg-brand-400/20 text-brand-400 px-2 py-0.5 rounded-full">
             {agent.role}
           </span>
         </div>
@@ -434,13 +434,13 @@ function buildOrgTree(): EChartsOption {
           },
         },
         lineStyle: {
-          color: "#4c6ef5",
+          color: "#CCFF00",
           width: 1.5,
           curveness: 0.5,
         },
         itemStyle: {
-          color: "#4c6ef5",
-          borderColor: "#4c6ef5",
+          color: "#CCFF00",
+          borderColor: "#CCFF00",
         },
         emphasis: {
           focus: "descendant",
@@ -573,7 +573,7 @@ export default function AgentControl() {
             </div>
             <div className="h-1 w-full bg-surface-3 rounded-full overflow-hidden">
               <div
-                className="h-full bg-brand-600 rounded-full transition-all duration-1000 ease-linear"
+                className="h-full bg-brand-400 rounded-full transition-all duration-1000 ease-linear"
                 style={{ width: `${countdownPct}%` }}
               />
             </div>
@@ -585,7 +585,7 @@ export default function AgentControl() {
             disabled={refreshing}
             className={clsx(
               "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
-              "bg-brand-600/10 text-brand-400 hover:bg-brand-600/20 border border-brand-600/20",
+              "bg-brand-400/10 text-brand-400 hover:bg-brand-400/20 border border-brand-400/20",
               "disabled:opacity-50 disabled:cursor-not-allowed"
             )}
           >

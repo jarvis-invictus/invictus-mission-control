@@ -66,9 +66,9 @@ const packages = [
   {
     name: "Premium",
     price: "₹14,000",
-    color: "border-brand-600/30",
+    color: "border-brand-400/30",
     accent: "text-brand-400",
-    bg: "bg-brand-600/5",
+    bg: "bg-brand-400/5",
     badge: true,
     features: [
       "8+ page responsive website",
@@ -110,7 +110,7 @@ export default function SOPFulfillment() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-brand-600/10 border border-brand-600/20 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-brand-400/10 border border-brand-400/20 flex items-center justify-center">
             <Package className="w-5 h-5 text-brand-400" />
           </div>
           <div>
@@ -172,7 +172,7 @@ export default function SOPFulfillment() {
               )}
             >
               {pkg.badge && (
-                <div className="absolute -top-2.5 right-4 px-3 py-0.5 bg-brand-600 text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
+                <div className="absolute -top-2.5 right-4 px-3 py-0.5 bg-brand-400 text-black text-[10px] font-bold rounded-full uppercase tracking-wider">
                   Popular
                 </div>
               )}

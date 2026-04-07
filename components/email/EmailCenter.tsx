@@ -53,7 +53,7 @@ type DateRange = "all" | "today" | "7days" | "30days";
 
 // ── Status colors ──────────────────────────────────────
 const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string; hex: string }> = {
-  sent:      { bg: "bg-indigo-500/10", text: "text-indigo-400", dot: "bg-indigo-400", hex: "#4c6ef5" },
+  sent:      { bg: "bg-indigo-500/10", text: "text-indigo-400", dot: "bg-indigo-400", hex: "#CCFF00" },
   delivered: { bg: "bg-emerald-500/10", text: "text-emerald-400", dot: "bg-emerald-400", hex: "#10b981" },
   opened:    { bg: "bg-cyan-500/10", text: "text-cyan-400", dot: "bg-cyan-400", hex: "#06b6d4" },
   pending:   { bg: "bg-amber-500/10", text: "text-amber-400", dot: "bg-amber-400", hex: "#f59e0b" },
@@ -161,9 +161,9 @@ function AnalyticsTab({ emails }: { emails: EmailRecord[] }) {
         type: "line",
         data: sampleSent,
         smooth: true,
-        lineStyle: { color: "#4c6ef5", width: 2 },
-        itemStyle: { color: "#4c6ef5" },
-        areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(76,110,245,0.2)" }, { offset: 1, color: "rgba(76,110,245,0)" }] } as unknown as string },
+        lineStyle: { color: "#CCFF00", width: 2 },
+        itemStyle: { color: "#CCFF00" },
+        areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(204,255,0,0.2)" }, { offset: 1, color: "rgba(204,255,0,0)" }] } as unknown as string },
         animationDuration: 1500,
         animationEasing: "cubicOut",
       },
@@ -204,7 +204,7 @@ function AnalyticsTab({ emails }: { emails: EmailRecord[] }) {
         label: { show: false },
         emphasis: { label: { show: true, fontSize: 14, fontWeight: "bold", color: "#fff" } },
         data: [
-          { value: statusCounts.sent, name: "Sent", itemStyle: { color: "#4c6ef5" } },
+          { value: statusCounts.sent, name: "Sent", itemStyle: { color: "#CCFF00" } },
           { value: statusCounts.delivered, name: "Delivered", itemStyle: { color: "#10b981" } },
           { value: statusCounts.opened, name: "Opened", itemStyle: { color: "#06b6d4" } },
           { value: statusCounts.bounced, name: "Bounced", itemStyle: { color: "#f59e0b" } },
@@ -391,7 +391,7 @@ function HistoryTab({ emails, loading, error, onRefresh, onReply, onForward }: {
                 onClick={() => setStatusFilter(s)}
                 className={clsx(
                   "px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5",
-                  statusFilter === s ? "bg-brand-600 text-white" : "text-zinc-400 hover:text-white hover:bg-surface-3"
+                  statusFilter === s ? "bg-brand-400 text-black" : "text-zinc-400 hover:text-white hover:bg-surface-3"
                 )}
               >
                 {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -432,7 +432,7 @@ function HistoryTab({ emails, loading, error, onRefresh, onReply, onForward }: {
 
       {/* Bulk select header */}
       {selectedIds.size > 0 && (
-        <div className="bg-brand-600/10 border border-brand-500/20 rounded-lg px-4 py-2 flex items-center gap-3">
+        <div className="bg-brand-400/10 border border-brand-500/20 rounded-lg px-4 py-2 flex items-center gap-3">
           <span className="text-xs text-brand-400 font-medium">{selectedIds.size} selected</span>
           <button onClick={() => setSelectedIds(new Set())} className="text-xs text-zinc-400 hover:text-white">Clear</button>
         </div>
@@ -745,7 +745,7 @@ function ComposeTab({ templates, templatesLoading, onSent, initialTo, initialSub
           onClick={() => setShowPreview(!showPreview)}
           className={clsx(
             "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
-            showPreview ? "bg-brand-600 text-white" : "bg-surface-3 text-zinc-400 hover:text-white"
+            showPreview ? "bg-brand-400 text-black" : "bg-surface-3 text-zinc-400 hover:text-white"
           )}
         >
           <Eye className="w-3.5 h-3.5" />
@@ -773,7 +773,7 @@ function ComposeTab({ templates, templatesLoading, onSent, initialTo, initialSub
               disabled={sending}
               className={clsx(
                 "flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all",
-                sending ? "bg-brand-600/50 text-white/50 cursor-wait" : "bg-brand-600 text-white hover:bg-brand-500 active:scale-95"
+                sending ? "bg-brand-400/50 text-black/50 cursor-wait" : "bg-brand-400 text-black hover:bg-brand-300 active:scale-95"
               )}
             >
               {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -806,7 +806,7 @@ function ComposeTab({ templates, templatesLoading, onSent, initialTo, initialSub
               {previewTemplate && (
                 <button
                   onClick={() => { applyTemplate(previewTemplate.id); setPreviewTemplate(null); }}
-                  className="px-3 py-2 bg-brand-600 text-white text-xs font-medium rounded-lg hover:bg-brand-500 transition-colors"
+                  className="px-3 py-2 bg-brand-400 text-black text-xs font-medium rounded-lg hover:bg-brand-300 transition-colors"
                 >
                   Apply
                 </button>
@@ -984,7 +984,7 @@ function ComposeTab({ templates, templatesLoading, onSent, initialTo, initialSub
                 disabled={sending}
                 className={clsx(
                   "flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all",
-                  sending ? "bg-brand-600/50 text-white/50 cursor-wait" : "bg-brand-600 text-white hover:bg-brand-500 active:scale-95"
+                  sending ? "bg-brand-400/50 text-black/50 cursor-wait" : "bg-brand-400 text-black hover:bg-brand-300 active:scale-95"
                 )}
               >
                 {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -1444,7 +1444,7 @@ export default function EmailCenter() {
             className={clsx(
               "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
               activeTab === tab.id
-                ? "bg-brand-600 text-white shadow-lg shadow-brand-600/20"
+                ? "bg-brand-400 text-black shadow-lg shadow-brand-400/20"
                 : "text-zinc-400 hover:text-white hover:bg-surface-3"
             )}
           >

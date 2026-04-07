@@ -20,6 +20,8 @@ services:
       - /docker/openclaw-ogilvy/data/.openclaw/workspace:/workspace/agents/gary
       - /docker/openclaw-forge/data/.openclaw/workspace:/workspace/agents/linus
       - /docker/openclaw-friend/data/.openclaw/workspace:/workspace/agents/friend
+      # Docker socket for system audit
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.mission-control.rule=Host(`control.invictus-ai.in`)"

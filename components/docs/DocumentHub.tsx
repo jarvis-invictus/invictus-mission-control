@@ -54,7 +54,7 @@ const ACCENT_COLORS: Record<string, string> = {
   dental: "#06b6d4",
   finance: "#eab308",
   delivery: "#ec4899",
-  product: "#6366f1",
+  product: "#CCFF00",
   creative: "#ef4444",
   other: "#71717a",
 };
@@ -694,7 +694,7 @@ export default function DocumentHub() {
                     onClick={() => { setSortKey(opt.key); setShowSortMenu(false); }}
                     className={`w-full text-left px-4 py-2 text-sm transition-colors ${
                       sortKey === opt.key
-                        ? "bg-brand-600/10 text-brand-400"
+                        ? "bg-brand-400/10 text-brand-400"
                         : "text-zinc-400 hover:bg-[#262630] hover:text-zinc-200"
                     }`}
                   >
@@ -709,14 +709,14 @@ export default function DocumentHub() {
           <div className="flex items-center bg-[#18181f] border border-white/5 rounded-lg overflow-hidden">
             <button
               onClick={() => setViewMode("grid")}
-              className={`p-2 transition-colors ${viewMode === "grid" ? "bg-brand-600/15 text-brand-400" : "text-zinc-500 hover:text-zinc-300"}`}
+              className={`p-2 transition-colors ${viewMode === "grid" ? "bg-brand-400/15 text-brand-400" : "text-zinc-500 hover:text-zinc-300"}`}
               title="Grid view"
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`p-2 transition-colors ${viewMode === "list" ? "bg-brand-600/15 text-brand-400" : "text-zinc-500 hover:text-zinc-300"}`}
+              className={`p-2 transition-colors ${viewMode === "list" ? "bg-brand-400/15 text-brand-400" : "text-zinc-500 hover:text-zinc-300"}`}
               title="List view"
             >
               <List className="w-4 h-4" />
@@ -737,7 +737,7 @@ export default function DocumentHub() {
 
       {/* ── Search ── */}
       <div className="relative">
-        <div className="flex items-center gap-3 px-5 py-4 bg-[#18181f] rounded-xl border border-white/5 focus-within:border-brand-600/40 transition-colors">
+        <div className="flex items-center gap-3 px-5 py-4 bg-[#18181f] rounded-xl border border-white/5 focus-within:border-brand-400/40 transition-colors">
           <Search className="w-5 h-5 text-zinc-500 flex-shrink-0" />
           <input
             type="text"
@@ -771,7 +771,7 @@ export default function DocumentHub() {
               onClick={() => setActiveCategory(cat.key)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm whitespace-nowrap transition-all border ${
                 isActive
-                  ? "bg-brand-600/15 text-brand-400 border-brand-500/30 font-medium shadow-sm shadow-brand-500/10"
+                  ? "bg-brand-400/15 text-brand-400 border-brand-500/30 font-medium shadow-sm shadow-brand-500/10"
                   : "bg-[#18181f] text-zinc-500 border-white/5 hover:bg-[#1f1f28] hover:text-zinc-300"
               }`}
             >
@@ -898,7 +898,7 @@ export default function DocumentHub() {
                       </button>
                       <button
                         onClick={startEdit}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-600/15 hover:bg-brand-600/25 rounded-lg text-xs text-brand-400 transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-400/15 hover:bg-brand-400/25 rounded-lg text-xs text-brand-400 transition-colors"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                         Edit
@@ -917,7 +917,7 @@ export default function DocumentHub() {
                       <button
                         onClick={saveEdit}
                         disabled={saving}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-700 rounded-lg text-xs text-white transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-400 hover:bg-brand-500 rounded-lg text-xs text-white transition-colors disabled:opacity-50"
                       >
                         {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                         {saving ? "Saving..." : "Save"}

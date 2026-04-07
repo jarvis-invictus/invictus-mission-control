@@ -275,7 +275,7 @@ export default function CommandCenter() {
           change={`Hot leads: ${fmt(hotProspects)}`}
           changeType={hotProspects > 0 ? "up" : "neutral"}
           icon={Users}
-          color="bg-brand-600"
+          color="bg-brand-400"
         />
         <MetricCard
           title="Contacted Rate"
@@ -556,7 +556,7 @@ function funnelOption(pipelineChart: { stage: string; count: number }[], total: 
 }
 
 const NICHE_COLORS = [
-  "#6366f1", "#06b6d4", "#22c55e", "#f59e0b",
+  "#CCFF00", "#06b6d4", "#22c55e", "#f59e0b",
   "#ef4444", "#ec4899", "#8b5cf6", "#14b8a6",
 ];
 
@@ -773,8 +773,8 @@ function activityLineOption(activities: { created_at: string }[]): EChartsOption
         smooth: true,
         symbol: "circle",
         symbolSize: 6,
-        lineStyle: { color: "#6366f1", width: 2 },
-        itemStyle: { color: "#6366f1" },
+        lineStyle: { color: "#CCFF00", width: 2 },
+        itemStyle: { color: "#CCFF00" },
         areaStyle: {
           color: {
             type: "linear",

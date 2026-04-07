@@ -95,7 +95,7 @@ const STAGES: Stage[] = ["NEW", "CONTACTED", "MEETING", "PROPOSAL", "WON", "LOST
 const TEMPERATURES: Temperature[] = ["HOT", "WARM", "COLD"];
 
 const stageConfig: Record<Stage, { label: string; color: string; bgColor: string; borderColor: string; headerBg: string; glowBorder: string; chartColor: string }> = {
-  NEW:       { label: "New",       color: "text-zinc-300",    bgColor: "bg-zinc-600",    borderColor: "border-zinc-600",   headerBg: "bg-zinc-800/60",      glowBorder: "border-zinc-400/50 shadow-[0_0_15px_rgba(161,161,170,0.15)]", chartColor: "#4c6ef5" },
+  NEW:       { label: "New",       color: "text-zinc-300",    bgColor: "bg-zinc-600",    borderColor: "border-zinc-600",   headerBg: "bg-zinc-800/60",      glowBorder: "border-zinc-400/50 shadow-[0_0_15px_rgba(161,161,170,0.15)]", chartColor: "#CCFF00" },
   CONTACTED: { label: "Contacted", color: "text-blue-300",    bgColor: "bg-blue-600",    borderColor: "border-blue-600",   headerBg: "bg-blue-900/30",      glowBorder: "border-blue-400/50 shadow-[0_0_15px_rgba(96,165,250,0.2)]",   chartColor: "#00b4d8" },
   MEETING:   { label: "Meeting",   color: "text-indigo-300",  bgColor: "bg-indigo-600",  borderColor: "border-indigo-600", headerBg: "bg-indigo-900/30",    glowBorder: "border-indigo-400/50 shadow-[0_0_15px_rgba(129,140,248,0.2)]", chartColor: "#f59e0b" },
   PROPOSAL:  { label: "Proposal",  color: "text-amber-300",   bgColor: "bg-amber-600",   borderColor: "border-amber-600",  headerBg: "bg-amber-900/30",     glowBorder: "border-amber-400/50 shadow-[0_0_15px_rgba(251,191,36,0.2)]",  chartColor: "#f97316" },
@@ -365,7 +365,7 @@ function CRMAnalytics({
       data: nicheData.map(([n, c]) => ({
         value: c,
         itemStyle: {
-          color: n.toLowerCase() === "dental" ? "#22d3ee" : "#4c6ef5",
+          color: n.toLowerCase() === "dental" ? "#22d3ee" : "#CCFF00",
         },
       })),
     }],
@@ -602,7 +602,7 @@ function ProspectDetailModal({
                 href={prospect.demo_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-brand-500/10 text-brand-400 text-xs font-medium hover:bg-brand-500/20 transition-colors border border-brand-500/20"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-brand-500/10 text-brand-400 text-xs font-medium hover:bg-brand-300/20 transition-colors border border-brand-500/20"
               >
                 <ExternalLink className="w-3 h-3" /> View Demo
               </a>
@@ -764,7 +764,7 @@ function ProspectDetailModal({
                 <button
                   onClick={handleAddNote}
                   disabled={addingNote || !newNote.trim()}
-                  className="px-3 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 bg-brand-400 hover:bg-brand-300 text-black font-semibold text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {addingNote ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                 </button>
@@ -852,7 +852,7 @@ function SortableProspectCard({
     <div ref={setNodeRef} style={style} {...attributes}>
       <div
         className={clsx(
-          "bg-surface-3 rounded-lg p-3.5 cursor-pointer group border border-white/5 hover:border-brand-500/30 hover:shadow-[0_0_15px_rgba(76,110,245,0.08)] transition-all duration-200",
+          "bg-surface-3 rounded-lg p-3.5 cursor-pointer group border border-white/5 hover:border-brand-500/30 hover:shadow-[0_0_15px_rgba(204,255,0,0.08)] transition-all duration-200",
           isDragging && "ring-2 ring-brand-500/40"
         )}
       >
@@ -1626,7 +1626,7 @@ export default function CRMPipeline() {
               onClick={() => setViewMode("kanban")}
               className={clsx(
                 "flex items-center gap-1.5 px-3 py-2 text-sm transition-colors",
-                viewMode === "kanban" ? "bg-brand-600/20 text-brand-300" : "text-zinc-500 hover:text-zinc-300"
+                viewMode === "kanban" ? "bg-brand-400/20 text-brand-300" : "text-zinc-500 hover:text-zinc-300"
               )}
             >
               <LayoutGrid className="w-4 h-4" /> Kanban
@@ -1635,7 +1635,7 @@ export default function CRMPipeline() {
               onClick={() => setViewMode("table")}
               className={clsx(
                 "flex items-center gap-1.5 px-3 py-2 text-sm transition-colors",
-                viewMode === "table" ? "bg-brand-600/20 text-brand-300" : "text-zinc-500 hover:text-zinc-300"
+                viewMode === "table" ? "bg-brand-400/20 text-brand-300" : "text-zinc-500 hover:text-zinc-300"
               )}
             >
               <TableIcon className="w-4 h-4" /> Table
@@ -1648,7 +1648,7 @@ export default function CRMPipeline() {
             className={clsx(
               "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border transition-colors",
               showAnalytics
-                ? "bg-brand-600/20 border-brand-500/30 text-brand-300"
+                ? "bg-brand-400/20 border-brand-500/30 text-brand-300"
                 : "bg-surface-2 border-white/5 text-zinc-400 hover:bg-surface-3"
             )}
           >
@@ -1680,7 +1680,7 @@ export default function CRMPipeline() {
               className={clsx(
                 "flex items-center gap-2 px-3 py-2 rounded-lg text-sm border transition-colors",
                 activeNiche !== "All"
-                  ? "bg-brand-600/20 border-brand-500/30 text-brand-300"
+                  ? "bg-brand-400/20 border-brand-500/30 text-brand-300"
                   : "bg-surface-2 border-white/5 text-zinc-400 hover:bg-surface-3"
               )}
             >
@@ -1696,7 +1696,7 @@ export default function CRMPipeline() {
                     onClick={() => { setNicheFilter(n); setNicheOpen(false); }}
                     className={clsx(
                       "w-full text-left px-3 py-2 text-sm transition-colors",
-                      nicheFilter === n ? "bg-brand-600/20 text-brand-300" : "text-zinc-400 hover:bg-surface-4 hover:text-zinc-200"
+                      nicheFilter === n ? "bg-brand-400/20 text-brand-300" : "text-zinc-400 hover:bg-surface-4 hover:text-zinc-200"
                     )}
                   >
                     {n}
