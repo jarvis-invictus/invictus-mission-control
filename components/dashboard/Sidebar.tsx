@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, Mail, FileText, Bot,
   Globe, ChevronLeft, ChevronRight,
   Zap, Search, LogOut, Clock,
-  AlertTriangle, ClipboardList, Package, BookOpen
+  AlertTriangle, ClipboardList, Package, BookOpen, HardDrive
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { clsx } from "clsx";
@@ -54,6 +54,7 @@ const sections: NavSection[] = [
     title: "Tracking",
     items: [
       { icon: AlertTriangle, label: "Blockers", href: "/blockers" },
+      { icon: HardDrive, label: "System Audit", href: "/audit" },
     ],
   },
   {
