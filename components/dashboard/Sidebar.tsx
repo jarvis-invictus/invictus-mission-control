@@ -4,8 +4,9 @@ import { useState } from "react";
 import { 
   LayoutDashboard, Users, Mail, FileText, Bot, 
   Globe, UserCheck, ChevronLeft, ChevronRight,
-  Zap, Settings, Search
+  Zap, Settings, Search, LogOut
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { clsx } from "clsx";
 
 const navItems = [
@@ -24,6 +25,13 @@ const bottomItems = [
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const router = useRouter();
+
+  async function handleLogout() {
+    await fetch("/api/auth", { method: "DELETE" });
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <aside
@@ -94,6 +102,14 @@ export default function Sidebar() {
         >
           {collapsed ? <ChevronRight className="w-[18px] h-[18px]" /> : <ChevronLeft className="w-[18px] h-[18px]" />}
           {!collapsed && <span>Collapse</span>}
+        </button>
+
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-500 hover:bg-danger/10 hover:text-danger transition-all w-full"
+        >
+          <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
+          {!collapsed && <span>Logout</span>}
         </button>
       </div>
     </aside>
