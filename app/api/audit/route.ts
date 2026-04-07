@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { readFileSync } from 'fs';
 
 const execAsync = promisify(exec);
 
-async function sshCommand(cmd: string, timeoutMs = 8000): Promise<string> {
+async function run(cmd: string, timeoutMs = 10000): Promise<string> {
   try {
-    const { stdout } = await execAsync(
-      `ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@187.124.99.189 "${cmd.replace(/"/g, '\\"')}"`,
-      { timeout: timeoutMs }
-    );
+    const { stdout } = await execAsync(cmd, { timeout: timeoutMs });
     return stdout.trim();
   } catch (e: any) {
     return e.stdout?.trim() || '';
@@ -18,16 +16,23 @@ async function sshCommand(cmd: string, timeoutMs = 8000): Promise<string> {
 
 export async function GET() {
   try {
-    // Run all SSH commands in parallel for speed
-    const [ramSwap, dockerStats, dockerImages, dockerSystem, loadInfo, cpuCount, uptimeInfo] = await Promise.all([
-      sshCommand("free -m"),
-      sshCommand("docker stats --no-stream --format '{{.Name}}|{{.MemUsage}}|{{.MemPerc}}|{{.CPUPerc}}'"),
-      sshCommand("docker images --format '{{.Repository}}|{{.Tag}}|{{.Size}}|{{.ID}}'"),
-      sshCommand("docker system df --format '{{.Type}}|{{.TotalCount}}|{{.Size}}|{{.Reclaimable}}'"),
-      sshCommand("cat /proc/loadavg"),
-      sshCommand("nproc"),
-      sshCommand("uptime -p"),
+    // All commands run locally inside the container — docker socket is mounted
+    const [ramSwap, dockerStats, dockerImages, dockerSystem, loadInfo, uptimeInfo] = await Promise.all([
+      run("free -m"),
+      run("docker stats --no-stream --format '{{.Name}}|{{.MemUsage}}|{{.MemPerc}}|{{.CPUPerc}}'"),
+      run("docker images --format '{{.Repository}}|{{.Tag}}|{{.Size}}|{{.ID}}'"),
+      run("docker system df --format '{{.Type}}|{{.TotalCount}}|{{.Size}}|{{.Reclaimable}}'"),
+      run("cat /proc/loadavg"),
+      run("uptime -p 2>/dev/null || echo 'N/A'"),
     ]);
+
+    // Disk — read from /hostfs/proc if mounted, or use df on /
+    let dfOut = '';
+    try {
+      dfOut = await run("df / | tail -1");
+    } catch {
+      dfOut = '';
+    }
 
     // Parse RAM
     const ramLine = ramSwap.split('\n').find(l => l.startsWith('Mem:'));
@@ -35,8 +40,7 @@ export async function GET() {
     const ramParts = ramLine?.split(/\s+/) || [];
     const swapParts = swapLine?.split(/\s+/) || [];
 
-    // Parse disk (from SSH motd or df)
-    const dfOut = await sshCommand("df / | tail -1");
+    // Parse disk
     const dfParts = dfOut.split(/\s+/);
 
     const ram = {
@@ -53,10 +57,13 @@ export async function GET() {
       free_mb: parseInt(swapParts[3]) || 0,
     };
 
+    const diskUsedKb = parseInt(dfParts[2]) || 0;
+    const diskFreeKb = parseInt(dfParts[3]) || 0;
+    const diskTotalKb = diskUsedKb + diskFreeKb;
     const disk = {
-      total_gb: 193,
-      used_gb: Math.round((parseInt(dfParts[2]) || 0) / 1048576),
-      free_gb: Math.round((parseInt(dfParts[3]) || 0) / 1048576),
+      total_gb: Math.round(diskTotalKb / 1048576) || 193,
+      used_gb: Math.round(diskUsedKb / 1048576),
+      free_gb: Math.round(diskFreeKb / 1048576),
       percent: parseInt(dfParts[4]) || 0,
     };
 
@@ -72,7 +79,7 @@ export async function GET() {
       return { repo, tag, size, id };
     });
 
-    // Parse docker system
+    // Parse docker system df
     const dockerSys: Record<string, string> = {};
     dockerSystem.split('\n').filter(Boolean).forEach(line => {
       const [type, count, size, reclaimable] = line.split('|');
@@ -90,6 +97,13 @@ export async function GET() {
       '15min': parseFloat(loadParts[2]) || 0,
     };
 
+    // CPU count — from /proc/cpuinfo
+    let cpuCount = 4;
+    try {
+      const cpuInfo = await run("grep -c ^processor /proc/cpuinfo");
+      cpuCount = parseInt(cpuInfo) || 4;
+    } catch { /* default 4 */ }
+
     return NextResponse.json({
       disk,
       ram,
@@ -100,7 +114,7 @@ export async function GET() {
         images_count: dockerSys['images_count'],
         images_size: dockerSys['images_size'],
         images_reclaimable: dockerSys['images_reclaimable'],
-        containers_count: dockerSys['containers_count'] || dockerSys['containers_count'],
+        containers_count: dockerSys['containers_count'],
         containers_size: dockerSys['containers_size'],
         containers_reclaimable: dockerSys['containers_reclaimable'],
         volumes_count: dockerSys['localvolumes_count'],
@@ -111,7 +125,7 @@ export async function GET() {
         buildcache_reclaimable: dockerSys['buildcache_reclaimable'],
       },
       load,
-      cpu_count: parseInt(cpuCount) || 4,
+      cpu_count: cpuCount,
       uptime: uptimeInfo,
       timestamp: new Date().toISOString(),
     });
