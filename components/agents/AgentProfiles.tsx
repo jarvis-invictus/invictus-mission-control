@@ -2,9 +2,8 @@
 
 import { useState, useEffect, Fragment, ReactNode, useMemo } from "react";
 import {
-  ArrowLeft, Brain, Heart, Fingerprint, FileText, Zap, Shield,
-  Clock, FolderOpen, Users, Copy, Check, ChevronDown, ChevronRight,
-  Wrench, BookOpen, Activity, Eye, Pencil, Save, XCircle,
+  ArrowLeft, Clock, FolderOpen, Users, Copy, Check,
+  Pencil, Save, XCircle, Shield, Zap, BookOpen, Key,
 } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -21,6 +20,8 @@ interface AgentProfile {
   department: string;
   reportsTo: string;
   subAgents: string[];
+  skills: string[];
+  authority: string[];
   soul: string;
   memory: string;
   heartbeat: string;
@@ -40,6 +41,8 @@ interface AgentSummary {
   emoji: string;
   model: string;
   department: string;
+  skills: string[];
+  authority: string[];
   soulLines: number;
   soulPreview: string;
   memoryLines: number;
@@ -55,7 +58,7 @@ interface AgentSummary {
 }
 
 /* ================================================================
-   MARKDOWN RENDERER (simplified)
+   MARKDOWN RENDERER
    ================================================================ */
 function parseInline(text: string): ReactNode[] {
   const nodes: ReactNode[] = [];
@@ -65,9 +68,9 @@ function parseInline(text: string): ReactNode[] {
     const p = parts[i];
     if (!p) continue;
     const linkM = p.match(/^\[(.+?)\]\((.+?)\)$/);
-    if (linkM) { nodes.push(<a key={i} href={linkM[2]} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">{linkM[1]}</a>); continue; }
+    if (linkM) { nodes.push(<a key={i} href={linkM[2]} target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:underline">{linkM[1]}</a>); continue; }
     const codeM = p.match(/^`([^`]+)`$/);
-    if (codeM) { nodes.push(<code key={i} className="bg-[#262630] px-1.5 py-0.5 rounded font-mono text-sm text-cyan-300">{codeM[1]}</code>); continue; }
+    if (codeM) { nodes.push(<code key={i} className="bg-surface-3 px-1.5 py-0.5 rounded font-mono text-sm text-brand-300">{codeM[1]}</code>); continue; }
     const boldM = p.match(/^\*\*(.+?)\*\*$/);
     if (boldM) { nodes.push(<strong key={i} className="font-bold text-zinc-100">{boldM[1]}</strong>); continue; }
     const italicM = p.match(/^\*(.+?)\*$/);
@@ -77,8 +80,8 @@ function parseInline(text: string): ReactNode[] {
   return nodes;
 }
 
-function MdRenderer({ content, maxLines }: { content: string; maxLines?: number }) {
-  const lines = maxLines ? content.split("\n").slice(0, maxLines) : content.split("\n");
+function MdRenderer({ content }: { content: string }) {
+  const lines = content.split("\n");
   const elements: ReactNode[] = [];
   let i = 0;
   while (i < lines.length) {
@@ -89,20 +92,20 @@ function MdRenderer({ content, maxLines }: { content: string; maxLines?: number 
       i++;
       while (i < lines.length && !lines[i].match(/^```$/)) { codeLines.push(lines[i]); i++; }
       i++;
-      elements.push(<pre key={elements.length} className="p-3 bg-[#0d0d12] rounded-lg overflow-x-auto text-sm my-2 border border-[#262630]"><code className="text-zinc-300 font-mono">{codeLines.join("\n")}</code></pre>);
+      elements.push(<pre key={elements.length} className="p-3 bg-surface-0 rounded-lg overflow-x-auto text-sm my-2 border border-surface-4"><code className="text-zinc-300 font-mono">{codeLines.join("\n")}</code></pre>);
       continue;
     }
-    if (/^---+$/.test(line.trim())) { elements.push(<hr key={elements.length} className="border-[#262630] my-4" />); i++; continue; }
+    if (/^---+$/.test(line.trim())) { elements.push(<hr key={elements.length} className="border-surface-4 my-4" />); i++; continue; }
     const h1 = line.match(/^# (.+)$/);
     if (h1) { elements.push(<h1 key={elements.length} className="text-xl font-bold text-white mt-6 mb-2">{parseInline(h1[1])}</h1>); i++; continue; }
     const h2 = line.match(/^## (.+)$/);
-    if (h2) { elements.push(<h2 key={elements.length} className="text-lg font-semibold text-zinc-100 mt-5 mb-2 pb-1 border-b border-[#262630]">{parseInline(h2[1])}</h2>); i++; continue; }
+    if (h2) { elements.push(<h2 key={elements.length} className="text-lg font-semibold text-zinc-100 mt-5 mb-2 pb-1 border-b border-surface-4">{parseInline(h2[1])}</h2>); i++; continue; }
     const h3 = line.match(/^### (.+)$/);
     if (h3) { elements.push(<h3 key={elements.length} className="text-base font-medium text-zinc-200 mt-4 mb-1">{parseInline(h3[1])}</h3>); i++; continue; }
     const h4 = line.match(/^#### (.+)$/);
     if (h4) { elements.push(<h4 key={elements.length} className="text-sm font-medium text-zinc-300 mt-3 mb-1">{parseInline(h4[1])}</h4>); i++; continue; }
     const bq = line.match(/^> (.+)$/);
-    if (bq) { elements.push(<blockquote key={elements.length} className="border-l-4 border-cyan-500/50 pl-3 py-1 my-2 italic text-zinc-400 bg-[#1a1a2e]/50 rounded-r">{parseInline(bq[1])}</blockquote>); i++; continue; }
+    if (bq) { elements.push(<blockquote key={elements.length} className="border-l-4 border-brand-400/50 pl-3 py-1 my-2 italic text-zinc-400 bg-surface-3/50 rounded-r">{parseInline(bq[1])}</blockquote>); i++; continue; }
     if (line.match(/^[-*] .+$/)) {
       const items: ReactNode[] = [];
       while (i < lines.length && lines[i].match(/^[-*] (.+)$/)) { const m = lines[i].match(/^[-*] (.+)$/); if (m) items.push(<li key={items.length} className="text-zinc-400 text-sm">{parseInline(m[1])}</li>); i++; }
@@ -116,8 +119,8 @@ function MdRenderer({ content, maxLines }: { content: string; maxLines?: number 
         elements.push(
           <div key={elements.length} className="overflow-x-auto my-3">
             <table className="w-full text-sm border-collapse">
-              <thead><tr className="border-b border-[#262630]">{rows[0].map((h, hi) => <th key={hi} className="text-left py-1.5 px-2 font-semibold text-zinc-300 bg-[#1a1a2e]">{parseInline(h)}</th>)}</tr></thead>
-              <tbody>{rows.slice(1).map((row, ri) => <tr key={ri} className={ri % 2 === 0 ? "bg-[#14141f]" : "bg-[#1a1a2e]"}>{row.map((cell, ci) => <td key={ci} className="py-1.5 px-2 text-zinc-400 border-b border-[#262630]/30">{parseInline(cell)}</td>)}</tr>)}</tbody>
+              <thead><tr className="border-b border-surface-4">{rows[0].map((h, hi) => <th key={hi} className="text-left py-1.5 px-2 font-semibold text-zinc-300 bg-surface-3">{parseInline(h)}</th>)}</tr></thead>
+              <tbody>{rows.slice(1).map((row, ri) => <tr key={ri} className={ri % 2 === 0 ? "bg-surface-2" : "bg-surface-3"}>{row.map((cell, ci) => <td key={ci} className="py-1.5 px-2 text-zinc-400 border-b border-surface-4/30">{parseInline(cell)}</td>)}</tr>)}</tbody>
             </table>
           </div>
         );
@@ -132,44 +135,46 @@ function MdRenderer({ content, maxLines }: { content: string; maxLines?: number 
 }
 
 /* ================================================================
-   AGENT CARD (grid view)
+   AGENT CARD
    ================================================================ */
 function AgentCard({ agent, onClick }: { agent: AgentSummary; onClick: () => void }) {
   const fmtSize = (b: number) => b < 1024 * 1024 ? `${(b / 1024).toFixed(0)} KB` : `${(b / (1024 * 1024)).toFixed(1)} MB`;
   
   const docBadges = [
-    { key: "hasSOUL", icon: "⚡", label: "Soul", color: "text-yellow-400" },
+    { key: "hasSOUL", icon: "⚡", label: "Soul", color: "text-brand-400" },
     { key: "hasMEMORY", icon: "🧠", label: "Memory", color: "text-purple-400" },
     { key: "hasHEARTBEAT", icon: "💓", label: "Heartbeat", color: "text-pink-400" },
-    { key: "hasIDENTITY", icon: "🎭", label: "Identity", color: "text-cyan-400" },
+    { key: "hasIDENTITY", icon: "🎭", label: "Identity", color: "text-accent-cyan" },
     { key: "hasDECISIONS", icon: "📋", label: "Decisions", color: "text-amber-400" },
   ];
 
   return (
     <button
       onClick={onClick}
-      className="w-full text-left bg-[#1a1a2e] hover:bg-[#222240] border border-[#2a2a4a] hover:border-cyan-500/30 rounded-xl p-5 transition-all duration-200 group"
+      className="w-full text-left bg-surface-2 hover:bg-surface-3 border border-surface-4 hover:border-brand-400/30 rounded-xl p-4 transition-all duration-200 group"
     >
-      {/* Header */}
-      <div className="flex items-start gap-4 mb-4">
-        <div className="w-14 h-14 rounded-xl bg-[#0d0d1a] border-2 border-[#2a2a4a] group-hover:border-cyan-500/30 flex items-center justify-center text-3xl transition-colors">
+      {/* Header — compact */}
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-10 h-10 rounded-lg bg-surface-3 border border-surface-4 group-hover:border-brand-400/30 flex items-center justify-center text-xl transition-colors flex-shrink-0">
           {agent.emoji}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">{agent.name}</h3>
-          <p className="text-sm text-cyan-500 font-semibold">{agent.role} — {agent.title}</p>
-          <p className="text-xs text-zinc-500 mt-0.5 font-mono">{agent.model}</p>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-bold text-white group-hover:text-brand-400 transition-colors">{agent.name}</h3>
+            <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-400/10 text-brand-400">{agent.role}</span>
+          </div>
+          <p className="text-xs text-zinc-500 font-mono mt-0.5">{agent.model}</p>
         </div>
       </div>
 
-      {/* Doc badges */}
-      <div className="flex flex-wrap gap-1.5 mb-3">
+      {/* Doc badges — small */}
+      <div className="flex flex-wrap gap-1 mb-3">
         {docBadges.map(badge => {
           const has = (agent as any)[badge.key];
           return (
             <span key={badge.key} className={clsx(
-              "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border",
-              has ? `${badge.color} bg-[#0d0d1a] border-[#2a2a4a]` : "text-zinc-600 bg-transparent border-[#1a1a2e]"
+              "inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium",
+              has ? `${badge.color} bg-surface-3` : "text-zinc-700 bg-surface-1"
             )}>
               <span className={has ? "" : "grayscale opacity-30"}>{badge.icon}</span>
               {badge.label}
@@ -178,35 +183,25 @@ function AgentCard({ agent, onClick }: { agent: AgentSummary; onClick: () => voi
         })}
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-2 mb-3">
-        <div className="bg-[#0d0d1a] rounded-lg p-2 text-center">
-          <p className="text-sm font-bold text-white">{agent.soulLines}</p>
-          <p className="text-[10px] text-zinc-500">Soul Lines</p>
-        </div>
-        <div className="bg-[#0d0d1a] rounded-lg p-2 text-center">
-          <p className="text-sm font-bold text-white">{agent.memoryWords.toLocaleString()}</p>
-          <p className="text-[10px] text-zinc-500">Memory Words</p>
-        </div>
-        <div className="bg-[#0d0d1a] rounded-lg p-2 text-center">
-          <p className="text-sm font-bold text-white">{agent.fileCount}</p>
-          <p className="text-[10px] text-zinc-500">Files</p>
-        </div>
+      {/* Stats — compact row */}
+      <div className="grid grid-cols-3 gap-1.5 mb-3">
+        {[
+          { v: agent.soulLines, l: "Soul" },
+          { v: agent.memoryWords.toLocaleString(), l: "Words" },
+          { v: agent.fileCount, l: "Files" },
+        ].map(s => (
+          <div key={s.l} className="bg-surface-1 rounded-lg px-2 py-1.5 text-center">
+            <p className="text-xs font-bold text-white">{s.v}</p>
+            <p className="text-[9px] text-zinc-600">{s.l}</p>
+          </div>
+        ))}
       </div>
 
       {/* Soul preview */}
       {agent.soulPreview && (
-        <p className="text-xs text-zinc-500 line-clamp-2 italic">&quot;{agent.soulPreview.replace(/^#.*\n/, '').trim().slice(0, 120)}...&quot;</p>
-      )}
-
-      {/* Top folders */}
-      {agent.topFolders.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2">
-          {agent.topFolders.slice(0, 5).map(f => (
-            <span key={f} className="text-[10px] bg-[#0d0d1a] text-zinc-500 px-1.5 py-0.5 rounded border border-[#2a2a4a]">📁 {f}</span>
-          ))}
-          {agent.topFolders.length > 5 && <span className="text-[10px] text-zinc-600">+{agent.topFolders.length - 5} more</span>}
-        </div>
+        <p className="text-[11px] text-zinc-500 line-clamp-2 italic leading-relaxed">
+          &quot;{agent.soulPreview.replace(/^#.*\n/, '').trim().slice(0, 100)}...&quot;
+        </p>
       )}
     </button>
   );
@@ -218,7 +213,7 @@ function AgentCard({ agent, onClick }: { agent: AgentSummary; onClick: () => voi
 function AgentDetail({ agentId, onBack }: { agentId: string; onBack: () => void }) {
   const [profile, setProfile] = useState<AgentProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"soul" | "memory" | "heartbeat" | "identity" | "decisions" | "tools" | "workspace">("soul");
+  const [activeTab, setActiveTab] = useState<string>("soul");
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
   const [saving, setSaving] = useState(false);
@@ -234,7 +229,7 @@ function AgentDetail({ agentId, onBack }: { agentId: string; onBack: () => void 
 
   const tabs = useMemo(() => {
     if (!profile) return [];
-    return [
+    const t = [
       { key: "soul", label: "Soul", icon: "⚡", has: profile.hasDocs.soul, content: profile.soul },
       { key: "memory", label: "Memory", icon: "🧠", has: profile.hasDocs.memory, content: profile.memory },
       { key: "heartbeat", label: "Heartbeat", icon: "💓", has: profile.hasDocs.heartbeat, content: profile.heartbeat },
@@ -242,21 +237,28 @@ function AgentDetail({ agentId, onBack }: { agentId: string; onBack: () => void 
       { key: "decisions", label: "Decisions", icon: "📋", has: profile.hasDocs.decisions, content: profile.decisions },
       { key: "tools", label: "Tools", icon: "🔧", has: profile.hasDocs.tools, content: profile.tools },
     ].filter(t => t.has);
+    // Always add Skills and Authority tabs
+    t.push({ key: "skills", label: "Skills", icon: "🛠️", has: true, content: "" });
+    t.push({ key: "authority", label: "Authority", icon: "🔑", has: true, content: "" });
+    return t;
   }, [profile]);
 
-  const currentContent = tabs.find(t => t.key === activeTab)?.content || "";
+  const currentTab = tabs.find(t => t.key === activeTab);
+  const currentContent = currentTab?.content || "";
+  const isEditable = !["skills", "authority"].includes(activeTab);
 
   async function handleSave() {
     if (!profile) return;
     setSaving(true);
-    const filename = activeTab === "soul" ? "SOUL.md" : activeTab === "memory" ? "MEMORY.md" : activeTab === "heartbeat" ? "HEARTBEAT.md" : activeTab === "identity" ? "IDENTITY.md" : activeTab === "decisions" ? "DECISIONS.md" : "TOOLS.md";
+    const fileMap: Record<string, string> = { soul: "SOUL.md", memory: "MEMORY.md", heartbeat: "HEARTBEAT.md", identity: "IDENTITY.md", decisions: "DECISIONS.md", tools: "TOOLS.md" };
+    const filename = fileMap[activeTab];
+    if (!filename) { setSaving(false); return; }
     try {
       await fetch(`/api/agents/workspace/${agentId}/file`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: filename, content: editContent }),
       });
-      // Refresh
       const r = await fetch(`/api/agents/profile?id=${agentId}`);
       const d = await r.json();
       setProfile(d);
@@ -273,81 +275,70 @@ function AgentDetail({ agentId, onBack }: { agentId: string; onBack: () => void 
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <div className="animate-spin w-8 h-8 border-3 border-cyan-500 border-t-transparent rounded-full" />
+      <div className="animate-spin w-6 h-6 border-2 border-brand-400 border-t-transparent rounded-full" />
     </div>
   );
 
-  if (!profile) return (
-    <div className="text-center py-20 text-red-400">Agent not found</div>
-  );
+  if (!profile) return <div className="text-center py-20 text-red-400">Agent not found</div>;
 
   const fmtSize = (b: number) => b < 1024 * 1024 ? `${(b / 1024).toFixed(0)} KB` : `${(b / (1024 * 1024)).toFixed(1)} MB`;
 
   return (
-    <div className="space-y-6">
-      {/* Back button */}
+    <div className="space-y-5">
+      {/* Back */}
       <button onClick={onBack} className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors">
-        <ArrowLeft className="w-4 h-4" />
-        Back to Fleet
+        <ArrowLeft className="w-4 h-4" /> Back to Fleet
       </button>
 
       {/* Profile Header */}
-      <div className="bg-[#1a1a2e] rounded-xl border border-[#2a2a4a] overflow-hidden">
-        {/* Gradient banner */}
-        <div className="h-24 bg-gradient-to-r from-cyan-900/30 via-purple-900/30 to-blue-900/30 relative">
-          <div className="absolute -bottom-10 left-6">
-            <div className="w-20 h-20 rounded-2xl bg-[#0d0d1a] border-4 border-[#1a1a2e] flex items-center justify-center text-4xl shadow-xl">
+      <div className="bg-surface-2 rounded-xl border border-surface-4 overflow-hidden">
+        <div className="h-20 bg-gradient-to-r from-brand-400/10 via-brand-400/5 to-surface-2 relative">
+          <div className="absolute -bottom-8 left-5">
+            <div className="w-16 h-16 rounded-xl bg-surface-1 border-4 border-surface-2 flex items-center justify-center text-3xl shadow-lg">
               {profile.emoji}
             </div>
           </div>
         </div>
 
-        <div className="pt-12 pb-5 px-6">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div className="pt-10 pb-4 px-5">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-white">{profile.name}</h1>
-              <p className="text-cyan-400 font-semibold text-sm">{profile.role} — {profile.title}</p>
-              <div className="flex flex-wrap gap-2 mt-2">
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-[#0d0d1a] border border-[#2a2a4a] text-zinc-300">
+              <h1 className="text-xl font-bold text-white">{profile.name}</h1>
+              <p className="text-brand-400 font-semibold text-sm">{profile.role} — {profile.title}</p>
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] bg-surface-3 border border-surface-4 text-zinc-300">
                   <Users className="w-3 h-3" /> {profile.department}
                 </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-[#0d0d1a] border border-[#2a2a4a] text-zinc-300">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] bg-surface-3 border border-surface-4 text-zinc-300">
                   <Shield className="w-3 h-3" /> Reports to {profile.reportsTo}
                 </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] bg-brand-400/10 border border-brand-400/20 text-brand-400 font-mono">
                   <Zap className="w-3 h-3" /> {profile.model}
                 </span>
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="flex gap-3">
-              <div className="bg-[#0d0d1a] rounded-lg px-4 py-2 text-center border border-[#2a2a4a]">
-                <p className="text-lg font-bold text-white">{profile.soul.split("\n").length}</p>
-                <p className="text-[10px] text-zinc-500 uppercase">Soul Lines</p>
-              </div>
-              <div className="bg-[#0d0d1a] rounded-lg px-4 py-2 text-center border border-[#2a2a4a]">
-                <p className="text-lg font-bold text-white">{profile.memory.split(/\s+/).filter(Boolean).length.toLocaleString()}</p>
-                <p className="text-[10px] text-zinc-500 uppercase">Memory Words</p>
-              </div>
-              <div className="bg-[#0d0d1a] rounded-lg px-4 py-2 text-center border border-[#2a2a4a]">
-                <p className="text-lg font-bold text-white">{profile.stats.files}</p>
-                <p className="text-[10px] text-zinc-500 uppercase">Files</p>
-              </div>
-              <div className="bg-[#0d0d1a] rounded-lg px-4 py-2 text-center border border-[#2a2a4a]">
-                <p className="text-lg font-bold text-white">{fmtSize(profile.stats.totalSize)}</p>
-                <p className="text-[10px] text-zinc-500 uppercase">Workspace</p>
-              </div>
+            <div className="flex gap-2">
+              {[
+                { v: profile.soul.split("\n").length, l: "Soul" },
+                { v: profile.memory.split(/\s+/).filter(Boolean).length.toLocaleString(), l: "Words" },
+                { v: profile.stats.files, l: "Files" },
+                { v: fmtSize(profile.stats.totalSize), l: "Size" },
+              ].map(s => (
+                <div key={s.l} className="bg-surface-1 rounded-lg px-3 py-1.5 text-center border border-surface-4">
+                  <p className="text-sm font-bold text-white">{s.v}</p>
+                  <p className="text-[9px] text-zinc-500 uppercase">{s.l}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Sub-agents */}
           {profile.subAgents.length > 0 && (
-            <div className="mt-4">
-              <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5">Sub-Agents</p>
-              <div className="flex flex-wrap gap-1.5">
+            <div className="mt-3">
+              <p className="text-[9px] text-zinc-500 uppercase tracking-wider mb-1">Sub-Agents</p>
+              <div className="flex flex-wrap gap-1">
                 {profile.subAgents.map(s => (
-                  <span key={s} className="px-2.5 py-1 rounded-lg text-xs bg-[#0d0d1a] border border-[#2a2a4a] text-zinc-300">{s}</span>
+                  <span key={s} className="px-2 py-0.5 rounded-md text-[11px] bg-surface-3 border border-surface-4 text-zinc-300">{s}</span>
                 ))}
               </div>
             </div>
@@ -355,93 +346,134 @@ function AgentDetail({ agentId, onBack }: { agentId: string; onBack: () => void 
         </div>
       </div>
 
-      {/* Tab bar */}
-      <div className="bg-[#1a1a2e] rounded-xl border border-[#2a2a4a] overflow-hidden">
-        <div className="flex border-b border-[#2a2a4a] overflow-x-auto">
+      {/* Tab bar + Content */}
+      <div className="bg-surface-2 rounded-xl border border-surface-4 overflow-hidden">
+        <div className="flex border-b border-surface-4 overflow-x-auto">
           {tabs.map(tab => (
             <button
               key={tab.key}
-              onClick={() => { setActiveTab(tab.key as any); setEditing(false); }}
+              onClick={() => { setActiveTab(tab.key); setEditing(false); }}
               className={clsx(
-                "flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2",
+                "flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-medium whitespace-nowrap transition-colors border-b-2",
                 activeTab === tab.key
-                  ? "text-cyan-400 border-cyan-400 bg-cyan-500/5"
-                  : "text-zinc-500 border-transparent hover:text-zinc-300 hover:bg-[#222240]"
+                  ? "text-brand-400 border-brand-400 bg-brand-400/5"
+                  : "text-zinc-500 border-transparent hover:text-zinc-300 hover:bg-surface-3"
               )}
             >
-              <span>{tab.icon}</span>
+              <span className="text-sm">{tab.icon}</span>
               {tab.label}
-              {tab.content && <span className="text-[10px] text-zinc-600 ml-1">({tab.content.split("\n").length}L)</span>}
             </button>
           ))}
         </div>
 
-        {/* Content area */}
-        <div className="p-5">
-          {/* Toolbar */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-xs text-zinc-500">
-              {currentContent.split("\n").length} lines · {currentContent.split(/\s+/).filter(Boolean).length} words · {(currentContent.length / 1024).toFixed(1)} KB
-            </div>
-            <div className="flex gap-2">
-              <button onClick={handleCopy} className="flex items-center gap-1 px-2 py-1 text-xs text-zinc-400 hover:text-white bg-[#0d0d1a] rounded border border-[#2a2a4a] transition-colors">
-                {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-                {copied ? "Copied" : "Copy"}
-              </button>
-              {!editing ? (
-                <button onClick={() => { setEditing(true); setEditContent(currentContent); }} className="flex items-center gap-1 px-2 py-1 text-xs text-zinc-400 hover:text-white bg-[#0d0d1a] rounded border border-[#2a2a4a] transition-colors">
-                  <Pencil className="w-3 h-3" /> Edit
-                </button>
-              ) : (
-                <>
-                  <button onClick={handleSave} disabled={saving} className="flex items-center gap-1 px-2 py-1 text-xs text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 rounded border border-emerald-500/20 transition-colors disabled:opacity-50">
-                    <Save className="w-3 h-3" /> {saving ? "Saving..." : "Save"}
-                  </button>
-                  <button onClick={() => setEditing(false)} className="flex items-center gap-1 px-2 py-1 text-xs text-red-400 hover:text-red-300 bg-red-500/10 rounded border border-red-500/20 transition-colors">
-                    <XCircle className="w-3 h-3" /> Cancel
-                  </button>
-                </>
+        <div className="p-4">
+          {/* Skills tab */}
+          {activeTab === "skills" && profile && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-brand-400" /> Skills & Capabilities
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {(profile.skills || []).map((skill, i) => (
+                  <div key={i} className="flex items-center gap-2 px-3 py-2 bg-surface-1 rounded-lg border border-surface-4">
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-400 flex-shrink-0" />
+                    <span className="text-sm text-zinc-300">{skill}</span>
+                  </div>
+                ))}
+              </div>
+              {(!profile.skills || profile.skills.length === 0) && (
+                <p className="text-sm text-zinc-500 italic">No skills defined for this agent yet.</p>
               )}
             </div>
-          </div>
+          )}
 
-          {/* Content */}
-          {editing ? (
-            <textarea
-              value={editContent}
-              onChange={e => setEditContent(e.target.value)}
-              className="w-full h-[500px] bg-[#0d0d1a] text-zinc-300 font-mono text-sm p-4 rounded-lg border border-[#2a2a4a] focus:border-cyan-500/50 focus:outline-none resize-y"
-              spellCheck={false}
-            />
-          ) : currentContent ? (
-            <div className="max-h-[600px] overflow-y-auto pr-2">
-              <MdRenderer content={currentContent} />
+          {/* Authority tab */}
+          {activeTab === "authority" && profile && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                <Key className="w-4 h-4 text-amber-400" /> Authority & Approvals
+              </h3>
+              <div className="space-y-2">
+                {(profile.authority || []).map((auth, i) => (
+                  <div key={i} className="flex items-start gap-2 px-3 py-2 bg-surface-1 rounded-lg border border-surface-4">
+                    <Shield className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-zinc-300">{auth}</span>
+                  </div>
+                ))}
+              </div>
+              {(!profile.authority || profile.authority.length === 0) && (
+                <p className="text-sm text-zinc-500 italic">No authority definitions for this agent yet.</p>
+              )}
             </div>
-          ) : (
-            <p className="text-zinc-500 text-sm italic py-8 text-center">No content available for this document.</p>
+          )}
+
+          {/* Document tabs */}
+          {!["skills", "authority"].includes(activeTab) && (
+            <>
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-[11px] text-zinc-500 font-mono">
+                  {currentContent.split("\n").length} lines · {currentContent.split(/\s+/).filter(Boolean).length} words
+                </div>
+                <div className="flex gap-1.5">
+                  <button onClick={handleCopy} className="flex items-center gap-1 px-2 py-1 text-[11px] text-zinc-400 hover:text-white bg-surface-1 rounded border border-surface-4 transition-colors">
+                    {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                  {isEditable && !editing && (
+                    <button onClick={() => { setEditing(true); setEditContent(currentContent); }} className="flex items-center gap-1 px-2 py-1 text-[11px] text-zinc-400 hover:text-white bg-surface-1 rounded border border-surface-4 transition-colors">
+                      <Pencil className="w-3 h-3" /> Edit
+                    </button>
+                  )}
+                  {editing && (
+                    <>
+                      <button onClick={handleSave} disabled={saving} className="flex items-center gap-1 px-2 py-1 text-[11px] text-emerald-400 bg-emerald-500/10 rounded border border-emerald-500/20 disabled:opacity-50">
+                        <Save className="w-3 h-3" /> {saving ? "Saving..." : "Save"}
+                      </button>
+                      <button onClick={() => setEditing(false)} className="flex items-center gap-1 px-2 py-1 text-[11px] text-red-400 bg-red-500/10 rounded border border-red-500/20">
+                        <XCircle className="w-3 h-3" /> Cancel
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+              {editing ? (
+                <textarea
+                  value={editContent}
+                  onChange={e => setEditContent(e.target.value)}
+                  className="w-full h-[500px] bg-surface-0 text-zinc-300 font-mono text-sm p-4 rounded-lg border border-surface-4 focus:border-brand-400/50 focus:outline-none resize-y"
+                  spellCheck={false}
+                />
+              ) : currentContent ? (
+                <div className="max-h-[600px] overflow-y-auto pr-2">
+                  <MdRenderer content={currentContent} />
+                </div>
+              ) : (
+                <p className="text-zinc-500 text-sm italic py-8 text-center">No content available.</p>
+              )}
+            </>
           )}
         </div>
       </div>
 
       {/* Memory Timeline */}
       {profile.memoryFiles.length > 0 && (
-        <div className="bg-[#1a1a2e] rounded-xl border border-[#2a2a4a] p-5">
+        <div className="bg-surface-2 rounded-xl border border-surface-4 p-4">
           <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-2">
             <Clock className="w-4 h-4" /> Memory Timeline ({profile.memoryFiles.length} entries)
           </h3>
-          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+          <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
             {profile.memoryFiles.map(mf => {
               const dateMatch = mf.name.match(/(\d{4}-\d{2}-\d{2})/);
               const dateStr = dateMatch ? new Date(dateMatch[1]).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : mf.name;
               return (
-                <div key={mf.name} className="flex items-start gap-3 p-3 bg-[#0d0d1a] rounded-lg border border-[#2a2a4a] hover:border-[#3a3a5a] transition-colors">
-                  <div className="w-2 h-2 rounded-full bg-purple-400 mt-2 flex-shrink-0" />
+                <div key={mf.name} className="flex items-start gap-2.5 p-2.5 bg-surface-1 rounded-lg border border-surface-4 hover:border-surface-5 transition-colors">
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-2 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-zinc-300">{dateStr}</span>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="text-xs font-medium text-zinc-300">{dateStr}</span>
                       <span className="text-[10px] text-zinc-600 font-mono">{(mf.size / 1024).toFixed(1)} KB</span>
                     </div>
-                    {mf.preview && <p className="text-xs text-zinc-500 line-clamp-2">{mf.preview.replace(/^#.*\n/, '').trim()}</p>}
+                    {mf.preview && <p className="text-[11px] text-zinc-500 line-clamp-2">{mf.preview.replace(/^#.*\n/, '').trim()}</p>}
                   </div>
                 </div>
               );
@@ -451,14 +483,14 @@ function AgentDetail({ agentId, onBack }: { agentId: string; onBack: () => void 
       )}
 
       {/* Workspace folders */}
-      <div className="bg-[#1a1a2e] rounded-xl border border-[#2a2a4a] p-5">
+      <div className="bg-surface-2 rounded-xl border border-surface-4 p-4">
         <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-          <FolderOpen className="w-4 h-4" /> Workspace Folders ({profile.stats.folders.length})
+          <FolderOpen className="w-4 h-4" /> Workspace ({profile.stats.folders.length} folders)
         </h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {profile.stats.folders.map(f => (
-            <span key={f} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm bg-[#0d0d1a] border border-[#2a2a4a] text-zinc-300 hover:border-[#3a3a5a] transition-colors">
-              <FolderOpen className="w-3.5 h-3.5 text-yellow-500/70" /> {f}
+            <span key={f} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs bg-surface-1 border border-surface-4 text-zinc-300 hover:border-surface-5 transition-colors">
+              <FolderOpen className="w-3 h-3 text-brand-400/50" /> {f}
             </span>
           ))}
         </div>
@@ -483,8 +515,8 @@ export default function AgentProfiles() {
   }, []);
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[400px]">
-      <div className="animate-spin w-8 h-8 border-3 border-cyan-500 border-t-transparent rounded-full" />
+    <div className="flex items-center justify-center min-h-[200px]">
+      <div className="animate-spin w-6 h-6 border-2 border-brand-400 border-t-transparent rounded-full" />
     </div>
   );
 
@@ -493,15 +525,12 @@ export default function AgentProfiles() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          🤖 Agent Profiles
-        </h2>
-        <p className="text-sm text-zinc-500 mt-1">Click an agent to view their full profile, soul, memory, and workspace.</p>
+        <h2 className="text-lg font-bold text-white">Agent Profiles</h2>
+        <p className="text-xs text-zinc-500 mt-1">Click an agent to view profile, soul, memory, skills, and authority.</p>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {agents.map(agent => (
           <AgentCard key={agent.id} agent={agent} onClick={() => setSelectedAgent(agent.id)} />
         ))}

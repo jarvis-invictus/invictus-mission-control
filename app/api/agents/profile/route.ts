@@ -6,12 +6,13 @@ export const dynamic = "force-dynamic";
 
 const AGENTS_ROOT = process.env.AGENTS_WORKSPACE_ROOT || "/workspace/agents";
 
-const AGENT_META: Record<string, { name: string; role: string; title: string; emoji: string; model: string; department: string; reportsTo: string; subAgents: string[] }> = {
-  elon: { name: "Elon", role: "Fleet Commander", title: "Chief of Staff", emoji: "🎖️", model: "claude-sonnet-4.6", department: "Command", reportsTo: "Sahil (CEO)", subAgents: ["Jarvis", "Linus", "Jordan", "Gary", "Friend"] },
-  jordan: { name: "Jordan", role: "CRO", title: "Chief Revenue Officer", emoji: "📞", model: "claude-sonnet-4.6", department: "Revenue", reportsTo: "Elon", subAgents: ["Hunter", "Archer", "Tracker", "Closer"] },
-  gary: { name: "Gary", role: "CMO", title: "Chief Marketing Officer", emoji: "📣", model: "claude-sonnet-4.6", department: "Marketing", reportsTo: "Elon", subAgents: ["Quill", "Megaphone", "Radar"] },
-  linus: { name: "Linus", role: "CTO", title: "Chief Technology Officer", emoji: "⚙️", model: "claude-opus-4.6", department: "Engineering", reportsTo: "Elon", subAgents: ["Forge", "Deployer", "Inspector"] },
-  friend: { name: "Friend", role: "Companion", title: "Support & Assistance", emoji: "👋", model: "claude-sonnet-4.6", department: "Support", reportsTo: "Sahil", subAgents: [] },
+const AGENT_META: Record<string, { name: string; role: string; title: string; emoji: string; model: string; department: string; reportsTo: string; subAgents: string[]; skills: string[]; authority: string[] }> = {
+  jarvis: { name: "Jarvis", role: "COO", title: "Chief Operating Officer", emoji: "🏛️", model: "claude-opus-4.6", department: "Operations", reportsTo: "Sahil (CEO)", subAgents: ["Sentinel", "Arbiter", "Chronicle", "Nexus", "Dispatch"], skills: ["Fleet orchestration", "Task routing", "Discord ops", "Strategic planning", "Cross-dept coordination"], authority: ["Can assign tasks to all agents", "Can restart fleet members", "Can approve/reject proposals", "Direct report to CEO", "Budget allocation decisions"] },
+  elon: { name: "Elon", role: "Fleet Commander", title: "Chief of Staff", emoji: "🎖️", model: "claude-opus-4.6", department: "Command", reportsTo: "Jarvis (COO)", subAgents: ["Linus", "Jordan", "Gary", "Friend"], skills: ["Fleet monitoring", "Agent coordination", "VPS management", "Docker ops", "Task delegation"], authority: ["Can message all agents via hooks", "Can restart containers", "Can deploy to VPS", "Escalates blockers to Jarvis", "Memory & doc management"] },
+  linus: { name: "Linus", role: "CTO", title: "Chief Technology Officer", emoji: "⚙️", model: "claude-opus-4.6", department: "Engineering", reportsTo: "Elon", subAgents: ["Forge", "Tester", "Reviewer"], skills: ["Full-stack development", "Docker/DevOps", "API design", "Next.js/React", "Database management"], authority: ["Can deploy to production", "Can create/modify containers", "Can push to GitHub", "Infrastructure decisions", "Tech stack choices"] },
+  jordan: { name: "Jordan", role: "CRO", title: "Chief Revenue Officer", emoji: "📞", model: "claude-sonnet-4.6", department: "Revenue", reportsTo: "Elon", subAgents: ["Hunter", "Closer"], skills: ["Cold outreach", "Email campaigns", "Sales pipeline", "Lead qualification", "Follow-up sequences"], authority: ["Can send outreach emails", "Can update CRM prospects", "Can schedule meetings", "Revenue target ownership", "Pricing negotiations"] },
+  gary: { name: "Gary", role: "CMO", title: "Chief Marketing Officer", emoji: "📣", model: "claude-sonnet-4.6", department: "Marketing", reportsTo: "Elon", subAgents: ["Quill", "Megaphone", "Radar"], skills: ["Content marketing", "LinkedIn strategy", "SEO optimization", "Brand messaging", "Market research"], authority: ["Can post to LinkedIn", "Can create marketing content", "Can run ad campaigns", "Brand voice decisions", "Content calendar ownership"] },
+  friend: { name: "Friend", role: "Companion", title: "Support & Assistance", emoji: "👋", model: "claude-sonnet-4.6", department: "Support", reportsTo: "Sahil", subAgents: [], skills: ["Brainstorming", "Research", "Casual chat", "Task assistance", "Creative thinking"], authority: ["Personal assistant to Sahil", "No fleet authority", "Can research freely", "Can create docs/notes"] },
 };
 
 function safeRead(path: string): string {
@@ -25,7 +26,7 @@ function countFiles(dir: string): { files: number; totalSize: number; folders: s
   try {
     const entries = readdirSync(dir, { withFileTypes: true });
     for (const entry of entries) {
-      if (entry.name === "node_modules" || entry.name === ".git") continue;
+      if (entry.name === "node_modules" || entry.name === ".git" || entry.name === ".cache" || entry.name === ".npm" || entry.name === ".local") continue;
       const full = join(dir, entry.name);
       if (entry.isDirectory()) {
         folders.push(entry.name);
@@ -71,7 +72,6 @@ export async function GET(req: Request) {
   const agentId = url.searchParams.get("id");
   
   if (!agentId) {
-    // Return summary of all agents
     const agents = Object.entries(AGENT_META).map(([id, meta]) => {
       const dir = join(AGENTS_ROOT, id);
       const soul = safeRead(join(dir, "SOUL.md"));
@@ -97,7 +97,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ agents });
   }
 
-  // Single agent detail
   const meta = AGENT_META[agentId];
   if (!meta) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
 

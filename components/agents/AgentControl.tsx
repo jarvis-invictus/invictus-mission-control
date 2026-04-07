@@ -205,8 +205,8 @@ function ActiveAgentCard({
       </div>
 
       {/* AVATAR AREA */}
-      <div className="flex justify-center py-3">
-        <div className="w-16 h-16 rounded-full bg-surface-3 border-2 border-surface-4 flex items-center justify-center text-3xl">
+      <div className="flex justify-center py-1">
+        <div className="w-10 h-10 rounded-lg bg-surface-3 border border-surface-4 flex items-center justify-center text-xl">
           {meta.emoji}
         </div>
       </div>
