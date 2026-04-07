@@ -8,6 +8,7 @@ import { clsx } from "clsx";
 import Chart from "../charts/Chart";
 import type { EChartsOption } from "echarts";
 import AgentWorkspace from "./AgentWorkspace";
+import AgentProfiles from "./AgentProfiles";
 
 /* ================================================================
    TYPES
@@ -702,7 +703,10 @@ export default function AgentControl() {
         )}
       </div>
 
-      {/* =============== WORKSPACE BROWSER — DOMINANT SECTION =============== */}
+      {/* =============== AGENT PROFILES — PRIMARY SECTION =============== */}
+      <AgentProfiles />
+
+      {/* =============== WORKSPACE BROWSER =============== */}
       <AgentWorkspace />
     </div>
   );
