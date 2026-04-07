@@ -24,16 +24,25 @@ const DOCS_DIR = getDocsDir();
 
 function categorize(filename: string): string {
   const f = filename.toLowerCase();
-  if (f.startsWith("jordan-")) return "sales";
-  if (f.startsWith("gary-")) return "marketing";
-  if (f.startsWith("linus-")) return "engineering";
-  if (f.startsWith("warren-")) return "strategy";
-  if (f.startsWith("ray-")) return "finance";
-  if (f.startsWith("jeff-")) return "delivery";
-  if (f.startsWith("jony-")) return "product";
-  if (f.startsWith("steve-")) return "creative";
-  if (f.startsWith("dental-")) return "sales";
-  return "strategy";
+  // Strategy
+  if (/^(warren-|master-|decisions-|blueprint-)/.test(f)) return "strategy";
+  // Sales
+  if (/^(jordan-|outreach-|prospect-|cold-)/.test(f)) return "sales";
+  // Marketing
+  if (/^(gary-|content-|linkedin-|social-)/.test(f)) return "marketing";
+  // Engineering
+  if (/^(linus-|deploy-|docker-|api-)/.test(f)) return "engineering";
+  // Dental
+  if (/^dental-/.test(f)) return "dental";
+  // Finance
+  if (/^(ray-|financial-|pricing-|invoice-)/.test(f)) return "finance";
+  // Delivery
+  if (/^(jeff-|onboarding-|fulfillment-|sop-)/.test(f)) return "delivery";
+  // Product
+  if (/^(jony-|design-|template-|ui-)/.test(f)) return "product";
+  // Creative
+  if (/^(steve-|brand-|copy-|voice-)/.test(f)) return "creative";
+  return "other";
 }
 
 function extractTitle(content: string, filename: string): string {
@@ -43,6 +52,10 @@ function extractTitle(content: string, filename: string): string {
     .replace(/\.md$/, "")
     .replace(/[-_]/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function countWords(text: string): number {
+  return text.split(/\s+/).filter(Boolean).length;
 }
 
 export async function GET(req: NextRequest) {
@@ -84,6 +97,7 @@ export async function GET(req: NextRequest) {
       size: number;
       modified: string;
       preview: string;
+      wordCount: number;
     }> = [];
 
     for (const entry of entries) {
@@ -128,6 +142,7 @@ export async function GET(req: NextRequest) {
         size: stat.size,
         modified: stat.mtime.toISOString(),
         preview,
+        wordCount: countWords(content),
       });
     }
 
@@ -135,7 +150,6 @@ export async function GET(req: NextRequest) {
 
     const total = docs.length;
 
-    // Pagination support
     if (limit > 0) {
       const start = (page - 1) * limit;
       const paged = docs.slice(start, start + limit);

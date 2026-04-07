@@ -17,6 +17,20 @@ function getDocsDir(): string {
 
 const DOCS_DIR = getDocsDir();
 
+function sanitizeSlug(slug: string): boolean {
+  return !(!slug || /[\/\\]/.test(slug) || slug.includes("..") || slug.startsWith("."));
+}
+
+function resolveSafe(slug: string): string | null {
+  const filePath = path.join(DOCS_DIR, `${slug}.md`);
+  const resolved = path.resolve(filePath);
+  const docsResolved = path.resolve(DOCS_DIR);
+  if (!resolved.startsWith(docsResolved + path.sep) && resolved !== docsResolved) {
+    return null;
+  }
+  return resolved;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { slug: string } }
@@ -24,20 +38,15 @@ export async function GET(
   try {
     const slug = params.slug;
 
-    // Security: sanitize slug — no path traversal
-    if (!slug || /[\/\\]/.test(slug) || slug.includes("..") || slug.startsWith(".")) {
+    if (!sanitizeSlug(slug)) {
       return NextResponse.json(
         { error: "Invalid document slug" },
         { status: 400 }
       );
     }
 
-    const filePath = path.join(DOCS_DIR, `${slug}.md`);
-
-    // Extra safety: ensure resolved path stays within DOCS_DIR
-    const resolved = path.resolve(filePath);
-    const docsResolved = path.resolve(DOCS_DIR);
-    if (!resolved.startsWith(docsResolved + path.sep) && resolved !== docsResolved) {
+    const filePath = resolveSafe(slug);
+    if (!filePath) {
       return NextResponse.json(
         { error: "Invalid document path" },
         { status: 400 }
@@ -65,6 +74,64 @@ export async function GET(
     console.error("[docs/slug API] Error:", err);
     return NextResponse.json(
       { error: "Failed to read document" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { slug: string } }
+) {
+  try {
+    const slug = params.slug;
+
+    if (!sanitizeSlug(slug)) {
+      return NextResponse.json(
+        { error: "Invalid document slug" },
+        { status: 400 }
+      );
+    }
+
+    const filePath = resolveSafe(slug);
+    if (!filePath) {
+      return NextResponse.json(
+        { error: "Invalid document path" },
+        { status: 400 }
+      );
+    }
+
+    if (!fs.existsSync(filePath)) {
+      return NextResponse.json(
+        { error: `Document not found: ${slug}.md` },
+        { status: 404 }
+      );
+    }
+
+    const body = await req.json();
+    const content = body.content;
+
+    if (typeof content !== "string") {
+      return NextResponse.json(
+        { error: "Missing content field" },
+        { status: 400 }
+      );
+    }
+
+    fs.writeFileSync(filePath, content, "utf-8");
+    const stat = fs.statSync(filePath);
+
+    return NextResponse.json({
+      slug,
+      filename: `${slug}.md`,
+      size: stat.size,
+      modified: stat.mtime.toISOString(),
+      success: true,
+    });
+  } catch (err) {
+    console.error("[docs/slug PATCH] Error:", err);
+    return NextResponse.json(
+      { error: "Failed to save document" },
       { status: 500 }
     );
   }
