@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
-
 const execAsync = promisify(exec);
 
 async function run(cmd: string, timeoutMs = 15000): Promise<string> {
@@ -14,29 +13,50 @@ async function run(cmd: string, timeoutMs = 15000): Promise<string> {
   }
 }
 
+function parseStatsLine(line: string) {
+  // Parse: "CONTAINER ID  NAME  CPU%  MEM USAGE / LIMIT  MEM%  NET  BLOCK  PIDS"
+  const parts = line.split(/\s{2,}/);
+  if (parts.length < 7) return null;
+  return {
+    name: parts[1],
+    mem: parts[3],
+    mem_pct: parts[4],
+    cpu: parts[2],
+  };
+}
+
+function parseImageLine(line: string) {
+  const parts = line.split(/\s{2,}/);
+  if (parts.length < 5) return null;
+  return {
+    repo: parts[0],
+    tag: parts[1],
+    id: parts[2],
+    size: parts[parts.length - 1],
+  };
+}
+
 export async function GET() {
   try {
-    const fmt_stats = "'{{.Name}}|{{.MemUsage}}|{{.MemPerc}}|{{.CPUPerc}}'";
-    const fmt_images = "'{{.Repository}}|{{.Tag}}|{{.Size}}|{{.ID}}'";
-    const fmt_sysdf = "'{{.Type}}|{{.TotalCount}}|{{.Size}}|{{.Reclaimable}}'";
-
-    // Run sequentially to avoid overwhelming docker socket
     const ramSwap = await run("free -m");
-    const dockerStats = await run(`docker stats --no-stream --format ${fmt_stats}`, 20000);
-    const dockerImages = await run(`docker images --format ${fmt_images}`);
-    const dockerSystem = await run(`docker system df --format ${fmt_sysdf}`);
+    const dockerStatsRaw = await run("docker stats --no-stream", 20000);
+    const dockerImagesRaw = await run("docker images");
+    const dockerSystemRaw = await run("docker system df");
     const loadInfo = await run("cat /proc/loadavg");
     const uptimeInfo = await run("uptime -p 2>/dev/null || echo N/A");
     const dfOut = await run("df / | tail -1");
+    
+    let cpuCount = 4;
+    try {
+      const cpuInfo = await run("grep -c ^processor /proc/cpuinfo");
+      cpuCount = parseInt(cpuInfo) || 4;
+    } catch { /* default */ }
 
     // Parse RAM
     const ramLine = ramSwap.split('\n').find(l => l.startsWith('Mem:'));
     const swapLine = ramSwap.split('\n').find(l => l.startsWith('Swap:'));
     const ramParts = ramLine?.split(/\s+/) || [];
     const swapParts = swapLine?.split(/\s+/) || [];
-
-    // Parse disk
-    const dfParts = dfOut.split(/\s+/);
 
     const ram = {
       total_mb: parseInt(ramParts[1]) || 0,
@@ -52,36 +72,36 @@ export async function GET() {
       free_mb: parseInt(swapParts[3]) || 0,
     };
 
+    // Parse disk
+    const dfParts = dfOut.split(/\s+/);
     const diskUsedKb = parseInt(dfParts[2]) || 0;
     const diskFreeKb = parseInt(dfParts[3]) || 0;
-    const diskTotalKb = diskUsedKb + diskFreeKb;
     const disk = {
-      total_gb: Math.round(diskTotalKb / 1048576) || 193,
+      total_gb: Math.round((diskUsedKb + diskFreeKb) / 1048576) || 193,
       used_gb: Math.round(diskUsedKb / 1048576),
       free_gb: Math.round(diskFreeKb / 1048576),
       percent: parseInt(dfParts[4]) || 0,
     };
 
-    // Parse containers
-    const containers = dockerStats.split('\n').filter(Boolean).map(line => {
-      const [name, mem, mem_pct, cpu] = line.split('|');
-      return { name, mem, mem_pct, cpu };
-    });
+    // Parse docker stats (tabular)
+    const statsLines = dockerStatsRaw.split('\n').slice(1); // skip header
+    const containers = statsLines.map(parseStatsLine).filter(Boolean);
 
-    // Parse images
-    const images = dockerImages.split('\n').filter(Boolean).map(line => {
-      const [repo, tag, size, id] = line.split('|');
-      return { repo, tag, size, id };
-    });
+    // Parse docker images (tabular)
+    const imageLines = dockerImagesRaw.split('\n').slice(1);
+    const images = imageLines.map(parseImageLine).filter(Boolean);
 
-    // Parse docker system df
-    const dockerSys: Record<string, string> = {};
-    dockerSystem.split('\n').filter(Boolean).forEach(line => {
-      const [type, count, size, reclaimable] = line.split('|');
-      const key = type.toLowerCase().replace(/\s+/g, '');
-      dockerSys[`${key}_count`] = count;
-      dockerSys[`${key}_size`] = size;
-      dockerSys[`${key}_reclaimable`] = reclaimable;
+    // Parse docker system df (tabular)
+    const sysLines = dockerSystemRaw.split('\n').slice(1);
+    const dockerSys: Record<string, any> = {};
+    sysLines.forEach(line => {
+      const parts = line.split(/\s{2,}/);
+      if (parts.length >= 4) {
+        const key = parts[0].toLowerCase().replace(/\s+/g, '');
+        dockerSys[`${key}_count`] = parts[1];
+        dockerSys[`${key}_size`] = parts[3];
+        dockerSys[`${key}_reclaimable`] = parts[4] || '';
+      }
     });
 
     // Parse load
@@ -91,13 +111,6 @@ export async function GET() {
       '5min': parseFloat(loadParts[1]) || 0,
       '15min': parseFloat(loadParts[2]) || 0,
     };
-
-    // CPU count — from /proc/cpuinfo
-    let cpuCount = 4;
-    try {
-      const cpuInfo = await run("grep -c ^processor /proc/cpuinfo");
-      cpuCount = parseInt(cpuInfo) || 4;
-    } catch { /* default 4 */ }
 
     return NextResponse.json({
       disk,
