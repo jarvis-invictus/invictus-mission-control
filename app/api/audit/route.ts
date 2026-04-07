@@ -26,13 +26,14 @@ function parseStatsLine(line: string) {
 }
 
 function parseImageLine(line: string) {
-  const parts = line.split(/\s{2,}/);
-  if (parts.length < 5) return null;
+  // Format: repo|tag|size|id (from --format)
+  const parts = line.split('|');
+  if (parts.length < 4) return null;
   return {
     repo: parts[0],
     tag: parts[1],
-    id: parts[2],
-    size: parts[parts.length - 1],
+    size: parts[2],
+    id: parts[3],
   };
 }
 
@@ -40,7 +41,7 @@ export async function GET() {
   try {
     const ramSwap = await run("free -m");
     const dockerStatsRaw = await run("docker stats --no-stream", 20000);
-    const dockerImagesRaw = await run("docker images");
+    const dockerImagesRaw = await run("sh -c \"docker images --format '{{.Repository}}|{{.Tag}}|{{.Size}}|{{.ID}}'\"");
     const dockerSystemRaw = await run("docker system df");
     const loadInfo = await run("cat /proc/loadavg");
     const uptimeInfo = await run("uptime -p 2>/dev/null || echo N/A");
@@ -87,8 +88,8 @@ export async function GET() {
     const statsLines = dockerStatsRaw.split('\n').slice(1); // skip header
     const containers = statsLines.map(parseStatsLine).filter(Boolean);
 
-    // Parse docker images (tabular)
-    const imageLines = dockerImagesRaw.split('\n').slice(1);
+    // Parse docker images (pipe-delimited from --format)
+    const imageLines = dockerImagesRaw.split('\n').filter(l => l.includes('|'));
     const images = imageLines.map(parseImageLine).filter(Boolean);
 
     // Parse docker system df (tabular)
