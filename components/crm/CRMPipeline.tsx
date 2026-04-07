@@ -344,11 +344,11 @@ function CRMAnalytics({
   // Top Niches Vertical Bar
   const nicheBarOption: EChartsOption = {
     tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
-    grid: { left: 10, right: 10, top: 10, bottom: 30, containLabel: true },
+    grid: { left: 10, right: 10, top: 10, bottom: 50, containLabel: true },
     xAxis: {
       type: "category",
-      data: nicheData.map(([n]) => n),
-      axisLabel: { color: "#a1a1aa", fontSize: 10, rotate: 20 },
+      data: nicheData.map(([n]) => n.charAt(0).toUpperCase() + n.slice(1)),
+      axisLabel: { color: "#a1a1aa", fontSize: 9, rotate: 35, interval: 0 },
       axisLine: { lineStyle: { color: "#262630" } },
       axisTick: { show: false },
     },
@@ -928,7 +928,8 @@ function DroppableKanbanColumn({
   const config = stageConfig[stage];
   const stageProspects = prospects.filter((p) => (p.stage || "").toUpperCase() === stage);
   const { setNodeRef } = useDroppable({ id: `column-${stage}`, data: { stage } });
-  const prospectIds = stageProspects.map((p) => p.id);
+  const [displayLimit, setDisplayLimit] = useState(50);
+  const prospectIds = stageProspects.slice(0, displayLimit).map((p) => p.id);
 
   return (
     <div
@@ -955,13 +956,23 @@ function DroppableKanbanColumn({
               <SkeletonCard />
             </>
           ) : stageProspects.length > 0 ? (
-            stageProspects.map((prospect) => (
-              <SortableProspectCard
-                key={prospect.id}
-                prospect={prospect}
-                onClick={() => onCardClick(prospect)}
-              />
-            ))
+            <>
+              {stageProspects.slice(0, displayLimit).map((prospect) => (
+                <SortableProspectCard
+                  key={prospect.id}
+                  prospect={prospect}
+                  onClick={() => onCardClick(prospect)}
+                />
+              ))}
+              {stageProspects.length > displayLimit && (
+                <button
+                  onClick={() => setDisplayLimit(prev => prev + 50)}
+                  className="w-full py-2 text-xs text-zinc-500 hover:text-brand-400 bg-surface-3/50 rounded-lg border border-white/5 hover:border-brand-400/30 transition-colors"
+                >
+                  Show more ({stageProspects.length - displayLimit} remaining)
+                </button>
+              )}
+            </>
           ) : (
             <div className={clsx(
               "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
@@ -1387,7 +1398,7 @@ export default function CRMPipeline() {
     setLoading(true);
     setError(null);
     try {
-      const params: Record<string, string> = { limit: "200" };
+      const params: Record<string, string> = { limit: "2000" };
       const q = search ?? searchQuery;
       if (q.trim()) params.search = q.trim();
       if (dentalOnly) {
@@ -1451,20 +1462,51 @@ export default function CRMPipeline() {
   const handleStageChange = async (id: string, newStage: Stage) => {
     const oldProspect = prospects.find((p) => p.id === id);
     const oldStage = oldProspect?.stage;
+    if (!oldStage || oldStage === newStage) return;
+    const businessName = oldProspect?.business_name || "Prospect";
+
+    // Optimistic update
     setChangingStage(true);
     setProspects((prev) => prev.map((p) => (p.id === id ? { ...p, stage: newStage } : p)));
     if (selectedProspect?.id === id) {
       setSelectedProspect((prev) => prev ? { ...prev, stage: newStage } : null);
     }
+
     try {
       await updateProspect(id, { stage: newStage });
-      toast.success(`Moved to ${stageConfig[newStage].label}`);
+
+      // Undo toast (5 seconds)
+      toast((t) => (
+        <div className="flex items-center gap-3">
+          <span className="text-sm">
+            <strong>{businessName}</strong> → {stageConfig[newStage].label}
+          </span>
+          <button
+            onClick={async () => {
+              toast.dismiss(t.id);
+              setProspects((prev) => prev.map((p) => (p.id === id ? { ...p, stage: oldStage } : p)));
+              if (selectedProspect?.id === id) {
+                setSelectedProspect((prev) => prev ? { ...prev, stage: oldStage } : null);
+              }
+              try {
+                await updateProspect(id, { stage: oldStage });
+                toast.success("Reverted!", { duration: 2000 });
+              } catch {
+                toast.error("Undo failed — refresh to check");
+                fetchProspects();
+              }
+            }}
+            className="px-2 py-1 text-xs font-bold bg-brand-400/20 text-brand-400 rounded hover:bg-brand-400/30 transition-colors whitespace-nowrap"
+          >
+            Undo
+          </button>
+        </div>
+      ), { duration: 5000, icon: "✅" });
     } catch {
-      if (oldStage) {
-        setProspects((prev) => prev.map((p) => (p.id === id ? { ...p, stage: oldStage } : p)));
-        if (selectedProspect?.id === id) {
-          setSelectedProspect((prev) => prev ? { ...prev, stage: oldStage } : null);
-        }
+      // Revert on failure
+      setProspects((prev) => prev.map((p) => (p.id === id ? { ...p, stage: oldStage } : p)));
+      if (selectedProspect?.id === id) {
+        setSelectedProspect((prev) => prev ? { ...prev, stage: oldStage } : null);
       }
       toast.error("Failed to update stage — reverted");
     } finally {
