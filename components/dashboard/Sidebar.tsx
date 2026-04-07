@@ -4,7 +4,8 @@ import { useState } from "react";
 import { 
   LayoutDashboard, Users, Mail, FileText, Bot, 
   Globe, UserCheck, ChevronLeft, ChevronRight,
-  Zap, Settings, Search, LogOut
+  Zap, Settings, Search, LogOut, Clock,
+  AlertTriangle, ClipboardList, Package
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { clsx } from "clsx";
@@ -13,11 +14,17 @@ const navItems = [
   { icon: LayoutDashboard, label: "Command Center", href: "/", active: true },
   { icon: Users, label: "CRM Pipeline", href: "/crm" },
   { icon: Mail, label: "Email Center", href: "/email" },
+  { icon: Clock, label: "Activity", href: "/activity" },
   { icon: FileText, label: "Documents", href: "/docs" },
   { icon: Bot, label: "Agent Control", href: "/agents" },
   { icon: Globe, label: "Sites & Demos", href: "/sites" },
   { icon: Globe, label: "Demos", href: "/demos" },
-  { icon: UserCheck, label: "Onboarding", href: "/onboarding" },
+  { icon: AlertTriangle, label: "Blockers", href: "/blockers" },
+];
+
+const sopItems = [
+  { icon: ClipboardList, label: "Onboarding", href: "/sop/onboarding" },
+  { icon: Package, label: "Fulfillment", href: "/sop/fulfillment" },
 ];
 
 const bottomItems = [
@@ -66,7 +73,7 @@ export default function Sidebar() {
       )}
 
       {/* Nav Items */}
-      <nav className="flex-1 px-2 py-2 space-y-0.5">
+      <nav className="flex-1 px-2 py-2 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => (
           <a
             key={item.label}
@@ -79,6 +86,24 @@ export default function Sidebar() {
             )}
           >
             <item.icon className={clsx("w-[18px] h-[18px] flex-shrink-0", item.active && "text-brand-400")} />
+            {!collapsed && <span>{item.label}</span>}
+          </a>
+        ))}
+
+        {/* SOP Section */}
+        {!collapsed && (
+          <div className="pt-3 pb-1 px-3">
+            <span className="text-[10px] font-semibold text-zinc-600 uppercase tracking-wider">SOPs</span>
+          </div>
+        )}
+        {collapsed && <div className="pt-2" />}
+        {sopItems.map((item) => (
+          <a
+            key={item.label}
+            href={item.href}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:bg-surface-2 hover:text-zinc-200 transition-all"
+          >
+            <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
             {!collapsed && <span>{item.label}</span>}
           </a>
         ))}
