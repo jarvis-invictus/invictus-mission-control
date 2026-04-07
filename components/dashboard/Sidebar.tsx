@@ -105,7 +105,7 @@ export default function Sidebar() {
       {/* Search */}
       {!collapsed && (
         <div className="px-3 py-3 flex-shrink-0">
-          <div className="flex items-center gap-2 px-3 py-2 bg-surface-2 rounded-lg text-zinc-500 text-sm cursor-pointer hover:bg-surface-3 transition-colors border border-surface-5">
+          <div onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))} className="flex items-center gap-2 px-3 py-2 bg-surface-2 rounded-lg text-zinc-500 text-sm cursor-pointer hover:bg-surface-3 transition-colors border border-surface-5">
             <Search className="w-4 h-4" />
             <span>Search everything...</span>
             <kbd className="ml-auto text-[10px] px-1.5 py-0.5 bg-surface-4 rounded text-zinc-600 border border-surface-5">⌘K</kbd>
