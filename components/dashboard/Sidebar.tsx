@@ -16,6 +16,7 @@ const navItems = [
   { icon: FileText, label: "Documents", href: "/docs" },
   { icon: Bot, label: "Agent Control", href: "/agents" },
   { icon: Globe, label: "Sites & Demos", href: "/sites" },
+  { icon: Globe, label: "Demos", href: "/demos" },
   { icon: UserCheck, label: "Onboarding", href: "/onboarding" },
 ];
 
