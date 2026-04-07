@@ -16,6 +16,7 @@ const PAGES = [
   { title: "Documents", href: "/docs", description: "Document hub, playbooks, strategy docs, SOPs" },
   { title: "Playbooks", href: "/playbooks", description: "Sales playbooks, onboarding scripts, pitch decks" },
   { title: "Agents", href: "/agents", description: "Fleet command, agent profiles, workspace browser" },
+  { title: "Team / Org", href: "/team", description: "Team structure, skills, authority, org chart" },
   { title: "Blockers", href: "/blockers", description: "Blocker tracker, severity levels, resolution status" },
   { title: "System Audit", href: "/audit", description: "VPS health, disk, RAM, swap, container status" },
   { title: "SOP: Onboarding", href: "/sop/onboarding", description: "Client onboarding standard operating procedure" },
