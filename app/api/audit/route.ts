@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
-import { promisify } from 'util';
 
-const execAsync = promisify(exec);
+// Extend Next.js API route timeout
+export const maxDuration = 30;
+export const dynamic = 'force-dynamic';
 
 async function run(cmd: string, timeoutMs = 15000): Promise<string> {
-  try {
-    const { stdout } = await execAsync(cmd, { timeout: timeoutMs, maxBuffer: 1024 * 1024 });
-    return stdout.trim();
-  } catch (e: any) {
-    return e.stdout?.trim() || '';
-  }
+  return new Promise((resolve) => {
+    exec(cmd, { timeout: timeoutMs, maxBuffer: 1024 * 1024 }, (err, stdout, stderr) => {
+      resolve(stdout?.trim() || '');
+    });
+  });
 }
 
 function parseStatsLine(line: string) {
