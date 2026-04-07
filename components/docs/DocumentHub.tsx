@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Search, FileText, Clock, X, ChevronRight, Loader2,
   BookOpen, TrendingUp, Megaphone, Code2, DollarSign,
-  Truck, Box, Palette, LayoutGrid
+  Truck, Box, Palette, LayoutGrid, RefreshCw
 } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -41,6 +41,8 @@ const CATEGORY_COLORS: Record<string, string> = {
   creative: "bg-rose-500/15 text-rose-400",
 };
 
+const PAGE_SIZE = 50;
+
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -67,26 +69,19 @@ function renderMarkdown(md: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  // Code blocks
   html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_m, _lang, code) =>
     `<pre class="bg-surface-0 rounded-lg p-4 overflow-x-auto my-3 text-xs"><code>${code.trim()}</code></pre>`
   );
-  // Inline code
   html = html.replace(/`([^`]+)`/g, '<code class="bg-surface-0 px-1.5 py-0.5 rounded text-brand-400 text-xs">$1</code>');
-  // Headers
   html = html.replace(/^#### (.+)$/gm, '<h4 class="text-sm font-semibold text-zinc-300 mt-4 mb-1">$1</h4>');
   html = html.replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold text-zinc-200 mt-5 mb-2">$1</h3>');
   html = html.replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold text-zinc-100 mt-6 mb-2">$1</h2>');
   html = html.replace(/^# (.+)$/gm, '<h1 class="text-xl font-bold text-white mt-6 mb-3">$1</h1>');
-  // Bold & italic
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="text-zinc-200 font-semibold">$1</strong>');
   html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-  // Lists
   html = html.replace(/^- (.+)$/gm, '<li class="ml-4 list-disc text-zinc-400 text-sm leading-relaxed">$1</li>');
   html = html.replace(/^\d+\. (.+)$/gm, '<li class="ml-4 list-decimal text-zinc-400 text-sm leading-relaxed">$1</li>');
-  // Horizontal rule
   html = html.replace(/^---$/gm, '<hr class="border-white/5 my-4" />');
-  // Paragraphs (double newline)
   html = html.replace(/\n\n/g, '</p><p class="text-sm text-zinc-400 leading-relaxed my-2">');
   html = `<p class="text-sm text-zinc-400 leading-relaxed my-2">${html}</p>`;
 
@@ -147,37 +142,64 @@ function SkeletonCard() {
 }
 
 export default function DocumentHub() {
-  const [docs, setDocs] = useState<DocItem[]>([]);
+  const [allDocs, setAllDocs] = useState<DocItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [apiMessage, setApiMessage] = useState("");
+  const [docsPath, setDocsPath] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
   const [docContent, setDocContent] = useState("");
   const [docLoading, setDocLoading] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const fetchDocs = useCallback(async () => {
     setLoading(true);
     setError("");
+    setApiMessage("");
     try {
-      const params = new URLSearchParams();
-      if (searchQuery) params.set("search", searchQuery);
-      if (activeCategory !== "all") params.set("category", activeCategory);
-      const res = await fetch(`/api/docs?${params}`);
-      if (!res.ok) throw new Error("Failed to fetch");
+      const res = await fetch("/api/docs");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      setDocs(data.docs || []);
-    } catch {
-      setError("Failed to load documents");
+      if (data.error) {
+        setError(data.error);
+      }
+      if (data.message) {
+        setApiMessage(data.message);
+      }
+      if (data.docsPath) {
+        setDocsPath(data.docsPath);
+      }
+      setAllDocs(data.docs || []);
+    } catch (err) {
+      setError("Failed to load documents. Check that the API is running.");
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, activeCategory]);
+  }, []);
 
   useEffect(() => {
-    const t = setTimeout(fetchDocs, 300);
-    return () => clearTimeout(t);
+    fetchDocs();
   }, [fetchDocs]);
+
+  // Client-side filtering
+  const filteredDocs = allDocs.filter((doc) => {
+    if (activeCategory !== "all" && doc.category !== activeCategory) return false;
+    if (searchQuery) {
+      const hay = `${doc.filename} ${doc.title} ${doc.preview}`.toLowerCase();
+      if (!hay.includes(searchQuery.toLowerCase())) return false;
+    }
+    return true;
+  });
+
+  const visibleDocs = filteredDocs.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredDocs.length;
+
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchQuery, activeCategory]);
 
   async function openDoc(slug: string) {
     setSelectedDoc(slug);
@@ -194,7 +216,7 @@ export default function DocumentHub() {
     }
   }
 
-  const categoryCounts = docs.reduce<Record<string, number>>((acc, d) => {
+  const categoryCounts = allDocs.reduce<Record<string, number>>((acc, d) => {
     acc[d.category] = (acc[d.category] || 0) + 1;
     return acc;
   }, {});
@@ -202,11 +224,27 @@ export default function DocumentHub() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-white">Document Hub</h1>
-        <p className="text-sm text-zinc-500 mt-1">
-          {loading ? "Loading..." : `${docs.length} documents in library`}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Document Hub</h1>
+          <p className="text-sm text-zinc-500 mt-1">
+            {loading
+              ? "Loading..."
+              : `${allDocs.length} documents in library${
+                  filteredDocs.length !== allDocs.length
+                    ? ` · ${filteredDocs.length} shown`
+                    : ""
+                }`}
+          </p>
+        </div>
+        <button
+          onClick={fetchDocs}
+          disabled={loading}
+          className="flex items-center gap-2 px-3 py-2 bg-surface-2 hover:bg-surface-3 rounded-lg text-sm text-zinc-400 hover:text-zinc-200 transition-colors border border-white/5 disabled:opacity-50"
+        >
+          <RefreshCw className={clsx("w-4 h-4", loading && "animate-spin")} />
+          Refresh
+        </button>
       </div>
 
       {/* Search */}
@@ -241,7 +279,9 @@ export default function DocumentHub() {
           >
             <cat.icon className="w-3.5 h-3.5" />
             {cat.label}
-            {cat.key !== "all" && categoryCounts[cat.key] ? (
+            {cat.key === "all" ? (
+              <span className="text-[10px] text-zinc-600 ml-0.5">{allDocs.length}</span>
+            ) : categoryCounts[cat.key] ? (
               <span className="text-[10px] text-zinc-600 ml-0.5">{categoryCounts[cat.key]}</span>
             ) : null}
           </button>
@@ -250,8 +290,19 @@ export default function DocumentHub() {
 
       {/* Error */}
       {error && (
-        <div className="bg-danger/10 border border-danger/20 rounded-lg p-4 text-danger text-sm">
-          {error}
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400 text-sm">
+          <p className="font-medium">Error</p>
+          <p className="mt-1">{error}</p>
+          {docsPath && (
+            <p className="mt-1 text-xs text-red-400/70 font-mono">Path: {docsPath}</p>
+          )}
+        </div>
+      )}
+
+      {/* API message (e.g. directory not found) */}
+      {apiMessage && !error && (
+        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 text-yellow-400 text-sm">
+          <p>{apiMessage}</p>
         </div>
       )}
 
@@ -263,19 +314,42 @@ export default function DocumentHub() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {docs.map((doc) => (
-            <DocCard key={doc.slug} doc={doc} onClick={() => openDoc(doc.slug)} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {visibleDocs.map((doc) => (
+              <DocCard key={doc.slug} doc={doc} onClick={() => openDoc(doc.slug)} />
+            ))}
+          </div>
+
+          {/* Load More */}
+          {hasMore && (
+            <div className="flex justify-center pt-4">
+              <button
+                onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                className="px-6 py-2.5 bg-surface-2 hover:bg-surface-3 rounded-lg text-sm text-zinc-400 hover:text-zinc-200 transition-colors border border-white/5"
+              >
+                Load More ({filteredDocs.length - visibleCount} remaining)
+              </button>
+            </div>
+          )}
+        </>
       )}
 
-      {!loading && docs.length === 0 && !error && (
+      {!loading && filteredDocs.length === 0 && !error && (
         <div className="text-center py-12">
           <FileText className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
           <p className="text-zinc-500">
-            {searchQuery ? `No documents matching "${searchQuery}"` : "No documents found"}
+            {searchQuery
+              ? `No documents matching "${searchQuery}"`
+              : allDocs.length === 0
+              ? `No documents found${docsPath ? ` in ${docsPath}` : ""}`
+              : "No documents in this category"}
           </p>
+          {allDocs.length === 0 && (
+            <p className="text-xs text-zinc-600 mt-2">
+              Place .md files in the docs directory and refresh.
+            </p>
+          )}
         </div>
       )}
 

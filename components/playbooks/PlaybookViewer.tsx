@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import {
   BookOpen, Search, X, Loader2, FileText, Clock,
-  Target, Megaphone, Truck, Stethoscope, ChevronRight
+  Target, Megaphone, Truck, Stethoscope, ChevronRight,
+  RefreshCw
 } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -23,6 +24,7 @@ interface PlaybookSection {
   icon: React.ElementType;
   color: string;
   patterns: RegExp[];
+  description: string;
 }
 
 const SECTIONS: PlaybookSection[] = [
@@ -31,21 +33,24 @@ const SECTIONS: PlaybookSection[] = [
     label: "Sales Playbooks",
     icon: Target,
     color: "text-blue-400 bg-blue-500/15",
-    patterns: [/^jordan-.*outreach/i, /^jordan-.*sales/i, /^jordan-.*call/i, /^jordan-.*conversion/i, /^jordan-.*nurture/i, /^jordan-.*followup/i, /^jordan-.*reply/i],
+    patterns: [/^jordan-/i],
+    description: "Outreach, calls, conversions, follow-ups",
   },
   {
     key: "marketing",
     label: "Marketing Playbooks",
     icon: Megaphone,
     color: "text-pink-400 bg-pink-500/15",
-    patterns: [/^gary-.*content/i, /^gary-.*linkedin/i, /^gary-.*social/i, /^gary-.*instagram/i, /^gary-.*meta/i, /^gary-.*google/i, /^gary-.*reel/i],
+    patterns: [/^gary-/i],
+    description: "Content, social media, ads, campaigns",
   },
   {
     key: "delivery",
     label: "Delivery Playbooks",
     icon: Truck,
     color: "text-orange-400 bg-orange-500/15",
-    patterns: [/^jeff-.*onboarding/i, /^jeff-.*delivery/i, /^jeff-.*success/i, /^jeff-.*sop/i, /^jeff-.*intake/i, /^jeff-.*welcome/i, /^jeff-.*discovery/i],
+    patterns: [/^jeff-/i],
+    description: "Onboarding, SOPs, client success",
   },
   {
     key: "dental",
@@ -53,6 +58,7 @@ const SECTIONS: PlaybookSection[] = [
     icon: Stethoscope,
     color: "text-emerald-400 bg-emerald-500/15",
     patterns: [/^dental-/i],
+    description: "Dental practice workflows",
   },
 ];
 
@@ -99,25 +105,32 @@ function renderMarkdown(md: string): string {
 export default function PlaybookViewer() {
   const [allDocs, setAllDocs] = useState<DocItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
   const [docContent, setDocContent] = useState("");
   const [docLoading, setDocLoading] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch("/api/docs");
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        setAllDocs(data.docs || []);
-      } catch {
-        // ignore
-      } finally {
-        setLoading(false);
+  async function loadDocs() {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/docs");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
       }
+      setAllDocs(data.docs || []);
+    } catch {
+      setError("Failed to load playbooks from docs API.");
+    } finally {
+      setLoading(false);
     }
-    load();
+  }
+
+  useEffect(() => {
+    loadDocs();
   }, []);
 
   async function openDoc(slug: string) {
@@ -144,15 +157,17 @@ export default function PlaybookViewer() {
             d.preview.toLowerCase().includes(searchQuery.toLowerCase())
         )
       : docs;
-    return { ...section, docs: filtered };
-  }).filter((s) => s.docs.length > 0);
+    return { ...section, docs: filtered, totalDocs: docs.length };
+  });
 
-  const totalPlaybooks = sections.reduce((sum, s) => sum + s.docs.length, 0);
+  const activeSections = sections.filter((s) => s.docs.length > 0);
+  const totalPlaybooks = sections.reduce((sum, s) => sum + s.totalDocs, 0);
+  const noPlaybooksFound = !loading && totalPlaybooks === 0 && !error;
 
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-brand-600/15 flex items-center justify-center">
             <BookOpen className="w-5 h-5 text-brand-400" />
@@ -160,10 +175,20 @@ export default function PlaybookViewer() {
           <div>
             <h1 className="text-2xl font-bold text-white">Playbooks</h1>
             <p className="text-sm text-zinc-500 mt-0.5">
-              {loading ? "Loading..." : `${totalPlaybooks} curated playbooks across ${sections.length} categories`}
+              {loading
+                ? "Loading..."
+                : `${totalPlaybooks} curated playbooks across ${sections.filter((s) => s.totalDocs > 0).length} categories`}
             </p>
           </div>
         </div>
+        <button
+          onClick={loadDocs}
+          disabled={loading}
+          className="flex items-center gap-2 px-3 py-2 bg-surface-2 hover:bg-surface-3 rounded-lg text-sm text-zinc-400 hover:text-zinc-200 transition-colors border border-white/5 disabled:opacity-50"
+        >
+          <RefreshCw className={clsx("w-4 h-4", loading && "animate-spin")} />
+          Refresh
+        </button>
       </div>
 
       {/* Search */}
@@ -183,6 +208,13 @@ export default function PlaybookViewer() {
         )}
       </div>
 
+      {/* Error */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400 text-sm">
+          <p>{error}</p>
+        </div>
+      )}
+
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-20">
@@ -192,7 +224,7 @@ export default function PlaybookViewer() {
 
       {/* Sections */}
       {!loading &&
-        sections.map((section) => (
+        activeSections.map((section) => (
           <div key={section.key}>
             <div className="flex items-center gap-2 mb-3">
               <div className={clsx("w-7 h-7 rounded-lg flex items-center justify-center", section.color.split(" ")[1])}>
@@ -225,11 +257,51 @@ export default function PlaybookViewer() {
           </div>
         ))}
 
-      {!loading && sections.length === 0 && (
+      {/* No playbooks found — show fallback categories */}
+      {noPlaybooksFound && (
+        <div className="space-y-6">
+          <div className="text-center py-8">
+            <BookOpen className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
+            <p className="text-zinc-400 font-medium">No playbooks found</p>
+            <p className="text-xs text-zinc-600 mt-2 max-w-md mx-auto">
+              Playbooks are auto-detected from docs matching:{" "}
+              <span className="font-mono text-zinc-500">jordan-*</span>,{" "}
+              <span className="font-mono text-zinc-500">gary-*</span>,{" "}
+              <span className="font-mono text-zinc-500">jeff-*</span>,{" "}
+              <span className="font-mono text-zinc-500">dental-*</span>
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {SECTIONS.map((section) => (
+              <div
+                key={section.key}
+                className="bg-surface-2 rounded-lg p-5 border border-white/5 opacity-60"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={clsx("w-8 h-8 rounded-lg flex items-center justify-center", section.color.split(" ")[1])}>
+                    <section.icon className={clsx("w-4 h-4", section.color.split(" ")[0])} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-zinc-300">{section.label}</h3>
+                    <p className="text-xs text-zinc-600">{section.description}</p>
+                  </div>
+                  <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-zinc-700/50 text-zinc-500 font-medium">
+                    Coming soon
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* No search results */}
+      {!loading && !noPlaybooksFound && activeSections.length === 0 && searchQuery && (
         <div className="text-center py-12">
           <BookOpen className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
           <p className="text-zinc-500">
-            {searchQuery ? `No playbooks matching "${searchQuery}"` : "No playbooks found"}
+            No playbooks matching &quot;{searchQuery}&quot;
           </p>
         </div>
       )}

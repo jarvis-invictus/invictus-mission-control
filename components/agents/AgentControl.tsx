@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Activity, RefreshCw, Wifi, WifiOff, Clock, Loader2,
-  Shield, Zap, Code, TrendingUp, MessageSquare, Users,
-  Cpu, Pause,
+  Shield, Users, Cpu, Pause,
 } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -15,15 +14,18 @@ interface AgentHealth {
   role: string;
   title: string;
   ip: string;
+  port: number;
   endpoint: string;
-  status: "alive" | "down";
-  responseTime: number;
+  status: "ALIVE" | "DOWN";
+  responseMs: number;
+  httpStatus: number | null;
   lastChecked: string;
+  error?: string;
 }
 
 interface FleetResponse {
   agents: AgentHealth[];
-  summary: { total: number; alive: number; down: number };
+  summary: { online: number; total: number };
   checkedAt: string;
 }
 
@@ -57,7 +59,7 @@ const REFRESH_INTERVAL = 30_000;
 // ============ LIVE AGENT CARD ============
 function LiveAgentCard({ agent }: { agent: AgentHealth }) {
   const meta = AGENT_META[agent.id] ?? { icon: "🤖", color: "from-zinc-500/20 to-zinc-600/10" };
-  const isAlive = agent.status === "alive";
+  const isAlive = agent.status === "ALIVE";
   const checkedDate = new Date(agent.lastChecked);
   const timeStr = checkedDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
@@ -86,22 +88,37 @@ function LiveAgentCard({ agent }: { agent: AgentHealth }) {
                   <span className={clsx("w-1.5 h-1.5 rounded-full", isAlive ? "bg-emerald-400 animate-pulse" : "bg-red-400")} />
                   {isAlive ? "Alive" : "Down"}
                 </span>
+                {/* HTTP Status Badge */}
+                {agent.httpStatus != null && (
+                  <span className="text-[10px] font-mono text-zinc-500 bg-surface-3 px-1.5 py-0.5 rounded">
+                    HTTP {agent.httpStatus}
+                  </span>
+                )}
               </div>
               <p className="text-xs text-zinc-500 mt-0.5">{agent.role} — {agent.title}</p>
             </div>
           </div>
         </div>
 
+        {/* Error detail for DOWN agents */}
+        {!isAlive && agent.error && (
+          <div className="mb-3 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <p className="text-xs text-red-400 font-mono">{agent.error}</p>
+          </div>
+        )}
+
         {/* Stats grid */}
         <div className="grid grid-cols-3 gap-3 bg-surface-3/50 rounded-lg p-3">
           <div className="text-center">
             <div className={clsx("text-lg font-bold font-mono", isAlive ? "text-emerald-400" : "text-red-400")}>
-              {agent.responseTime}<span className="text-[10px] text-zinc-500 ml-0.5">ms</span>
+              {agent.responseMs}<span className="text-[10px] text-zinc-500 ml-0.5">ms</span>
             </div>
             <div className="text-[10px] text-zinc-600 uppercase tracking-wider">Latency</div>
           </div>
           <div className="text-center">
-            <div className="text-sm font-mono text-zinc-300 truncate" title={agent.ip}>{agent.ip}</div>
+            <div className="text-sm font-mono text-zinc-300 truncate" title={`Container: ${agent.ip}`}>
+              {agent.ip}
+            </div>
             <div className="text-[10px] text-zinc-600 uppercase tracking-wider">Container IP</div>
           </div>
           <div className="text-center">
@@ -204,9 +221,9 @@ export default function AgentControl() {
     return () => clearInterval(tick);
   }, []);
 
-  const aliveCount = fleet?.summary.alive ?? 0;
+  const onlineCount = fleet?.summary.online ?? 0;
   const totalActive = fleet?.summary.total ?? 5;
-  const allHealthy = aliveCount === totalActive;
+  const allHealthy = onlineCount === totalActive;
 
   // ============ LOADING STATE ============
   if (loading && !fleet) {
@@ -237,9 +254,10 @@ export default function AgentControl() {
 
         <div className="flex items-center gap-3">
           {/* Countdown */}
-          <span className="text-[10px] text-zinc-600 font-mono tabular-nums">
-            Next check in {countdown}s
-          </span>
+          <div className="flex items-center gap-1.5 text-xs text-zinc-500 bg-surface-2 border border-white/5 rounded-lg px-3 py-1.5 font-mono tabular-nums">
+            <Clock className="w-3.5 h-3.5" />
+            Next check in <span className="text-zinc-300 font-semibold">{countdown}s</span>
+          </div>
 
           {/* Refresh button */}
           <button
@@ -292,14 +310,14 @@ export default function AgentControl() {
             <div>
               <div className="flex items-center gap-2">
                 <span className={clsx("text-lg font-bold", allHealthy ? "text-emerald-400" : "text-amber-400")}>
-                  {aliveCount}/{totalActive}
+                  {onlineCount}/{totalActive}
                 </span>
                 <span className="text-sm text-zinc-400">agents online</span>
               </div>
               <p className="text-xs text-zinc-600">
                 {allHealthy
                   ? "All systems operational — fleet is healthy"
-                  : `${totalActive - aliveCount} agent(s) unreachable — check connectivity`
+                  : `${totalActive - onlineCount} agent(s) unreachable — check connectivity`
                 }
               </p>
             </div>

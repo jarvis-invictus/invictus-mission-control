@@ -8,10 +8,13 @@ interface AgentCheck {
   role: string;
   title: string;
   ip: string;
+  port: number;
   endpoint: string;
-  status: "alive" | "down";
-  responseTime: number;
+  status: "ALIVE" | "DOWN";
+  responseMs: number;
+  httpStatus: number | null;
   lastChecked: string;
+  error?: string;
 }
 
 const ACTIVE_AGENTS = [
@@ -22,14 +25,16 @@ const ACTIVE_AGENTS = [
   { id: "friend", name: "Friend", role: "Support", title: "Support & Assistance", ip: "172.26.0.7"  },
 ];
 
+const PORT = 18790;
 const TOKEN = "fleet_ops_2026";
+const TIMEOUT_MS = 3000;
 
 async function checkAgent(agent: (typeof ACTIVE_AGENTS)[number]): Promise<AgentCheck> {
-  const endpoint = `http://${agent.ip}:18790/hooks/agent`;
+  const endpoint = `http://${agent.ip}:${PORT}/hooks/agent`;
   const start = Date.now();
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+    const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
     const res = await fetch(endpoint, {
       method: "GET",
       headers: { Authorization: `Bearer ${TOKEN}` },
@@ -37,41 +42,59 @@ async function checkAgent(agent: (typeof ACTIVE_AGENTS)[number]): Promise<AgentC
     });
     clearTimeout(timeout);
     const elapsed = Date.now() - start;
-    // 405 = relay is listening (method not allowed) = ALIVE
-    // Any HTTP response really means the server is up
+    // ANY HTTP response means the container is alive and listening.
+    // 405 is the expected response from relay endpoints (Method Not Allowed).
+    // Even 500 means the server process is running.
     return {
       id: agent.id,
       name: agent.name,
       role: agent.role,
       title: agent.title,
       ip: agent.ip,
+      port: PORT,
       endpoint,
-      status: (res.status === 405 || res.ok || res.status < 500) ? "alive" : "down",
-      responseTime: elapsed,
+      status: "ALIVE",
+      responseMs: elapsed,
+      httpStatus: res.status,
       lastChecked: new Date().toISOString(),
     };
-  } catch {
+  } catch (err) {
     const elapsed = Date.now() - start;
+    let errorDetail = "Connection failed";
+    if (err instanceof Error) {
+      if (err.name === "AbortError") {
+        errorDetail = `Timeout after ${TIMEOUT_MS}ms`;
+      } else if (err.message.includes("ECONNREFUSED")) {
+        errorDetail = "Connection refused — container may be down";
+      } else if (err.message.includes("ENOTFOUND")) {
+        errorDetail = "Host not found — DNS/network issue";
+      } else {
+        errorDetail = err.message;
+      }
+    }
     return {
       id: agent.id,
       name: agent.name,
       role: agent.role,
       title: agent.title,
       ip: agent.ip,
+      port: PORT,
       endpoint,
-      status: "down",
-      responseTime: elapsed,
+      status: "DOWN",
+      responseMs: elapsed,
+      httpStatus: null,
       lastChecked: new Date().toISOString(),
+      error: errorDetail,
     };
   }
 }
 
 export async function GET() {
   const results = await Promise.all(ACTIVE_AGENTS.map(checkAgent));
-  const alive = results.filter((r) => r.status === "alive").length;
+  const online = results.filter((r) => r.status === "ALIVE").length;
   return NextResponse.json({
     agents: results,
-    summary: { total: results.length, alive, down: results.length - alive },
+    summary: { online, total: results.length },
     checkedAt: new Date().toISOString(),
   });
 }

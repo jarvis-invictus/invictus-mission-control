@@ -5,14 +5,35 @@ import {
   Search, Filter, Phone, Mail, MapPin, Building2, User,
   ChevronDown, X, Flame, Thermometer, Snowflake, Star,
   Clock, RefreshCw, Loader2, AlertCircle, StickyNote,
-  CalendarDays, Hash, ToggleLeft, ToggleRight
+  CalendarDays, Hash, ToggleLeft, ToggleRight,
+  LayoutGrid, Table as TableIcon, GripVertical,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { getProspects, updateProspect } from "@/lib/api";
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragStartEvent,
+  type DragEndEvent,
+  type DragOverEvent,
+  useDroppable,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import toast, { Toaster } from "react-hot-toast";
 
 // ─── Types ───────────────────────────────────────────────────────────
 type Stage = "NEW" | "CONTACTED" | "MEETING" | "PROPOSAL" | "WON" | "LOST";
 type Temperature = "HOT" | "WARM" | "COLD";
+type ViewMode = "kanban" | "table";
 
 interface Prospect {
   id: string;
@@ -35,13 +56,13 @@ interface Prospect {
 // ─── Stage Config ────────────────────────────────────────────────────
 const STAGES: Stage[] = ["NEW", "CONTACTED", "MEETING", "PROPOSAL", "WON", "LOST"];
 
-const stageConfig: Record<Stage, { label: string; color: string; bgColor: string; borderColor: string; headerBg: string }> = {
-  NEW:       { label: "New",       color: "text-zinc-300",    bgColor: "bg-zinc-600",    borderColor: "border-zinc-600",   headerBg: "bg-zinc-800/60" },
-  CONTACTED: { label: "Contacted", color: "text-blue-300",    bgColor: "bg-blue-600",    borderColor: "border-blue-600",   headerBg: "bg-blue-900/30" },
-  MEETING:   { label: "Meeting",   color: "text-indigo-300",  bgColor: "bg-indigo-600",  borderColor: "border-indigo-600", headerBg: "bg-indigo-900/30" },
-  PROPOSAL:  { label: "Proposal",  color: "text-amber-300",   bgColor: "bg-amber-600",   borderColor: "border-amber-600",  headerBg: "bg-amber-900/30" },
-  WON:       { label: "Won",       color: "text-emerald-300", bgColor: "bg-emerald-600",  borderColor: "border-emerald-600",headerBg: "bg-emerald-900/30" },
-  LOST:      { label: "Lost",      color: "text-red-300",     bgColor: "bg-red-600",     borderColor: "border-red-600",    headerBg: "bg-red-900/30" },
+const stageConfig: Record<Stage, { label: string; color: string; bgColor: string; borderColor: string; headerBg: string; glowBorder: string }> = {
+  NEW:       { label: "New",       color: "text-zinc-300",    bgColor: "bg-zinc-600",    borderColor: "border-zinc-600",   headerBg: "bg-zinc-800/60",      glowBorder: "border-zinc-400/50 shadow-[0_0_15px_rgba(161,161,170,0.15)]" },
+  CONTACTED: { label: "Contacted", color: "text-blue-300",    bgColor: "bg-blue-600",    borderColor: "border-blue-600",   headerBg: "bg-blue-900/30",      glowBorder: "border-blue-400/50 shadow-[0_0_15px_rgba(96,165,250,0.2)]" },
+  MEETING:   { label: "Meeting",   color: "text-indigo-300",  bgColor: "bg-indigo-600",  borderColor: "border-indigo-600", headerBg: "bg-indigo-900/30",    glowBorder: "border-indigo-400/50 shadow-[0_0_15px_rgba(129,140,248,0.2)]" },
+  PROPOSAL:  { label: "Proposal",  color: "text-amber-300",   bgColor: "bg-amber-600",   borderColor: "border-amber-600",  headerBg: "bg-amber-900/30",     glowBorder: "border-amber-400/50 shadow-[0_0_15px_rgba(251,191,36,0.2)]" },
+  WON:       { label: "Won",       color: "text-emerald-300", bgColor: "bg-emerald-600",  borderColor: "border-emerald-600",headerBg: "bg-emerald-900/30",   glowBorder: "border-emerald-400/50 shadow-[0_0_15px_rgba(52,211,153,0.2)]" },
+  LOST:      { label: "Lost",      color: "text-red-300",     bgColor: "bg-red-600",     borderColor: "border-red-600",    headerBg: "bg-red-900/30",       glowBorder: "border-red-400/50 shadow-[0_0_15px_rgba(248,113,113,0.2)]" },
 };
 
 const NICHES = ["All", "Dental", "CA", "Salon", "Gym", "Restaurant", "Clinic", "Education", "Real Estate"];
@@ -207,61 +228,119 @@ function ProspectDetail({
   );
 }
 
-// ─── Prospect Card ───────────────────────────────────────────────────
-function ProspectCard({
+// ─── Sortable Prospect Card (Draggable) ──────────────────────────────
+function SortableProspectCard({
   prospect,
   onClick,
 }: {
   prospect: Prospect;
   onClick: () => void;
 }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: prospect.id, data: { prospect } });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.3 : 1,
+  };
+
   return (
-    <div
-      onClick={onClick}
-      className="bg-surface-3 rounded-lg p-3.5 cursor-pointer group border border-white/5 hover:border-brand-500/30 hover:shadow-[0_0_15px_rgba(76,110,245,0.08)] transition-all duration-200"
-    >
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <div
+        className={clsx(
+          "bg-surface-3 rounded-lg p-3.5 cursor-pointer group border border-white/5 hover:border-brand-500/30 hover:shadow-[0_0_15px_rgba(76,110,245,0.08)] transition-all duration-200",
+          isDragging && "ring-2 ring-brand-500/40"
+        )}
+      >
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Drag handle */}
+            <button
+              className="text-zinc-600 hover:text-zinc-400 cursor-grab active:cursor-grabbing flex-shrink-0 touch-none"
+              {...listeners}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <GripVertical className="w-4 h-4" />
+            </button>
+            <Building2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+            <span
+              className="text-sm font-medium text-zinc-200 group-hover:text-white transition-colors truncate"
+              onClick={onClick}
+            >
+              {prospect.business_name}
+            </span>
+          </div>
+          <TempBadge temp={prospect.temperature} />
+        </div>
+
+        <div onClick={onClick}>
+          {prospect.niche && (
+            <div className="text-[11px] text-zinc-500 mb-2 ml-10">
+              {prospect.niche}
+            </div>
+          )}
+
+          {prospect.city && (
+            <div className="flex items-center gap-1 text-xs text-zinc-500 mb-1.5 ml-10">
+              <MapPin className="w-3 h-3" /> {prospect.city}
+            </div>
+          )}
+
+          {prospect.phone && (
+            <div className="flex items-center gap-1 text-xs text-zinc-500 ml-10">
+              <Phone className="w-3 h-3" /> {prospect.phone}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Drag Overlay Card (follows cursor) ──────────────────────────────
+function DragOverlayCard({ prospect }: { prospect: Prospect }) {
+  return (
+    <div className="bg-surface-3 rounded-lg p-3.5 border-2 border-brand-500/50 shadow-2xl shadow-brand-500/20 w-[260px] rotate-2 opacity-90">
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2 min-w-0">
+          <GripVertical className="w-4 h-4 text-brand-400 flex-shrink-0" />
           <Building2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
-          <span className="text-sm font-medium text-zinc-200 group-hover:text-white transition-colors truncate">
+          <span className="text-sm font-medium text-white truncate">
             {prospect.business_name}
           </span>
         </div>
         <TempBadge temp={prospect.temperature} />
       </div>
-
-      {prospect.niche && (
-        <div className="text-[11px] text-zinc-500 mb-2 ml-6">
-          {prospect.niche}
-        </div>
-      )}
-
+      {prospect.niche && <div className="text-[11px] text-zinc-400 ml-10">{prospect.niche}</div>}
       {prospect.city && (
-        <div className="flex items-center gap-1 text-xs text-zinc-500 mb-1.5 ml-6">
+        <div className="flex items-center gap-1 text-xs text-zinc-400 ml-10 mt-1">
           <MapPin className="w-3 h-3" /> {prospect.city}
-        </div>
-      )}
-
-      {prospect.phone && (
-        <div className="flex items-center gap-1 text-xs text-zinc-500 ml-6">
-          <Phone className="w-3 h-3" /> {prospect.phone}
         </div>
       )}
     </div>
   );
 }
 
-// ─── Kanban Column ───────────────────────────────────────────────────
-function KanbanColumn({
+// ─── Droppable Kanban Column ─────────────────────────────────────────
+function DroppableKanbanColumn({
   stage,
   prospects,
   loading,
   onCardClick,
+  isOver,
 }: {
   stage: Stage;
   prospects: Prospect[];
   loading: boolean;
   onCardClick: (p: Prospect) => void;
+  isOver: boolean;
 }) {
   const config = stageConfig[stage];
   const stageProspects = prospects.filter((p) => {
@@ -269,8 +348,19 @@ function KanbanColumn({
     return ps === stage;
   });
 
+  const { setNodeRef } = useDroppable({ id: `column-${stage}`, data: { stage } });
+  const prospectIds = stageProspects.map((p) => p.id);
+
   return (
-    <div className="flex-shrink-0 w-[280px]">
+    <div
+      ref={setNodeRef}
+      className={clsx(
+        "flex-shrink-0 w-[280px] rounded-xl transition-all duration-200 p-1",
+        isOver && config.glowBorder,
+        isOver && "border-2 bg-white/[0.02]",
+        !isOver && "border-2 border-transparent"
+      )}
+    >
       {/* Column header */}
       <div className={clsx("flex items-center gap-2 mb-3 px-3 py-2 rounded-lg border-l-2", config.headerBg, config.borderColor)}>
         <span className={clsx("text-sm font-semibold", config.color)}>{config.label}</span>
@@ -279,21 +369,125 @@ function KanbanColumn({
         </span>
       </div>
 
-      <div className="space-y-2.5 min-h-[200px] max-h-[calc(100vh-260px)] overflow-y-auto pr-1 scrollbar-thin">
-        {loading ? (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
-        ) : stageProspects.length > 0 ? (
-          stageProspects.map((prospect) => (
-            <ProspectCard key={prospect.id} prospect={prospect} onClick={() => onCardClick(prospect)} />
-          ))
-        ) : (
-          <div className="border-2 border-dashed border-white/5 rounded-lg p-8 text-center">
-            <span className="text-xs text-zinc-600">No prospects</span>
-          </div>
-        )}
+      <SortableContext items={prospectIds} strategy={verticalListSortingStrategy}>
+        <div className="space-y-2.5 min-h-[200px] max-h-[calc(100vh-260px)] overflow-y-auto pr-1 scrollbar-thin">
+          {loading ? (
+            <>
+              <SkeletonCard />
+              <SkeletonCard />
+            </>
+          ) : stageProspects.length > 0 ? (
+            stageProspects.map((prospect) => (
+              <SortableProspectCard
+                key={prospect.id}
+                prospect={prospect}
+                onClick={() => onCardClick(prospect)}
+              />
+            ))
+          ) : (
+            <div className={clsx(
+              "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
+              isOver ? "border-brand-500/40 bg-brand-500/5" : "border-white/5"
+            )}>
+              <span className={clsx("text-xs", isOver ? "text-brand-400" : "text-zinc-600")}>
+                {isOver ? "Drop here" : "No prospects"}
+              </span>
+            </div>
+          )}
+        </div>
+      </SortableContext>
+    </div>
+  );
+}
+
+// ─── Table View ──────────────────────────────────────────────────────
+function TableView({
+  prospects,
+  loading,
+  onStageChange,
+  onRowClick,
+}: {
+  prospects: Prospect[];
+  loading: boolean;
+  onStageChange: (id: string, stage: Stage) => void;
+  onRowClick: (p: Prospect) => void;
+}) {
+  if (loading) {
+    return (
+      <div className="bg-surface-2 rounded-xl border border-white/5 p-8 text-center">
+        <Loader2 className="w-6 h-6 animate-spin text-zinc-500 mx-auto mb-2" />
+        <p className="text-sm text-zinc-500">Loading prospects…</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-surface-2 rounded-xl border border-white/5 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-white/5 bg-surface-3/50">
+              <th className="text-left px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-semibold w-10">#</th>
+              <th className="text-left px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Business Name</th>
+              <th className="text-left px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Niche</th>
+              <th className="text-left px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">City</th>
+              <th className="text-left px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Phone</th>
+              <th className="text-left px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Email</th>
+              <th className="text-left px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Stage</th>
+              <th className="text-left px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Temp</th>
+              <th className="text-left px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">ICP</th>
+              <th className="text-left px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {prospects.length === 0 ? (
+              <tr>
+                <td colSpan={10} className="px-4 py-12 text-center text-zinc-600">
+                  No prospects found
+                </td>
+              </tr>
+            ) : (
+              prospects.map((p, idx) => (
+                <tr
+                  key={p.id}
+                  className="border-b border-white/[0.03] hover:bg-surface-3/40 cursor-pointer transition-colors"
+                  onClick={() => onRowClick(p)}
+                >
+                  <td className="px-4 py-3 text-zinc-600 font-mono text-xs">{idx + 1}</td>
+                  <td className="px-4 py-3 text-zinc-200 font-medium">{p.business_name}</td>
+                  <td className="px-4 py-3 text-zinc-400">{p.niche || "—"}</td>
+                  <td className="px-4 py-3 text-zinc-400">{p.city || "—"}</td>
+                  <td className="px-4 py-3 text-zinc-400 font-mono text-xs">{p.phone || "—"}</td>
+                  <td className="px-4 py-3 text-zinc-400 text-xs max-w-[180px] truncate">{p.email || "—"}</td>
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                    <select
+                      value={p.stage}
+                      onChange={(e) => onStageChange(p.id, e.target.value as Stage)}
+                      className={clsx(
+                        "text-xs font-semibold px-2 py-1 rounded-md border appearance-none cursor-pointer bg-transparent",
+                        stageConfig[p.stage]?.color || "text-zinc-400",
+                        stageConfig[p.stage]?.borderColor || "border-zinc-600",
+                      )}
+                    >
+                      {STAGES.map((s) => (
+                        <option key={s} value={s}>{stageConfig[s].label}</option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-4 py-3"><TempBadge temp={p.temperature} /></td>
+                  <td className="px-4 py-3 text-zinc-400 font-mono text-xs">
+                    {p.icp_score != null ? p.icp_score : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-zinc-500 text-xs">
+                    {p.created_at
+                      ? new Date(p.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+                      : "—"}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -310,8 +504,16 @@ export default function CRMPipeline() {
   const [selectedProspect, setSelectedProspect] = useState<Prospect | null>(null);
   const [changingStage, setChangingStage] = useState(false);
   const [nicheOpen, setNicheOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("kanban");
+  const [activeProspect, setActiveProspect] = useState<Prospect | null>(null);
+  const [overColumn, setOverColumn] = useState<Stage | null>(null);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nicheDropdownRef = useRef<HTMLDivElement>(null);
+
+  // DnD sensors - require 8px distance before drag starts (prevents accidental drags)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
 
   // Close niche dropdown on outside click
   useEffect(() => {
@@ -333,7 +535,6 @@ export default function CRMPipeline() {
       const q = search ?? searchQuery;
       if (q.trim()) params.search = q.trim();
 
-      // Dental-only toggle overrides niche filter
       if (dentalOnly) {
         params.niche = "dental";
       } else if (nicheFilter !== "All") {
@@ -341,8 +542,6 @@ export default function CRMPipeline() {
       }
 
       const data = await getProspects(params);
-
-      // API might return { data: [...] } or just [...]
       const list: Prospect[] = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
       setProspects(list);
     } catch (err) {
@@ -354,7 +553,6 @@ export default function CRMPipeline() {
     }
   }, [searchQuery, nicheFilter, dentalOnly]);
 
-  // Initial load & re-fetch on filter changes
   useEffect(() => {
     fetchProspects();
   }, [fetchProspects]);
@@ -368,22 +566,93 @@ export default function CRMPipeline() {
     }, 400);
   };
 
-  // Stage change handler
+  // Stage change handler (used by modal and table view)
   const handleStageChange = async (id: string, newStage: Stage) => {
+    const oldProspect = prospects.find((p) => p.id === id);
+    const oldStage = oldProspect?.stage;
+
+    // Optimistic update
     setChangingStage(true);
+    setProspects((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, stage: newStage } : p))
+    );
+    if (selectedProspect?.id === id) {
+      setSelectedProspect((prev) => prev ? { ...prev, stage: newStage } : null);
+    }
+
     try {
       await updateProspect(id, { stage: newStage });
-      // Optimistic update
-      setProspects((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, stage: newStage } : p))
-      );
-      if (selectedProspect?.id === id) {
-        setSelectedProspect((prev) => prev ? { ...prev, stage: newStage } : null);
-      }
+      toast.success(`Moved to ${stageConfig[newStage].label}`);
     } catch (err) {
       console.error("Failed to update stage:", err);
+      // Revert on failure
+      if (oldStage) {
+        setProspects((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, stage: oldStage } : p))
+        );
+        if (selectedProspect?.id === id) {
+          setSelectedProspect((prev) => prev ? { ...prev, stage: oldStage } : null);
+        }
+      }
+      toast.error("Failed to update stage — reverted");
     } finally {
       setChangingStage(false);
+    }
+  };
+
+  // ─── DnD Handlers ───────────────────────────────────────────────
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const prospect = prospects.find((p) => p.id === active.id);
+    if (prospect) setActiveProspect(prospect);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over } = event;
+    if (!over) {
+      setOverColumn(null);
+      return;
+    }
+    // Detect which column we're over
+    const overId = String(over.id);
+    if (overId.startsWith("column-")) {
+      setOverColumn(overId.replace("column-", "") as Stage);
+    } else {
+      // Over a card — find which stage that card is in
+      const overProspect = prospects.find((p) => p.id === overId);
+      if (overProspect) {
+        setOverColumn(overProspect.stage);
+      }
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveProspect(null);
+    setOverColumn(null);
+
+    if (!over) return;
+
+    const activeId = String(active.id);
+    const overId = String(over.id);
+
+    // Determine target stage
+    let targetStage: Stage | null = null;
+    if (overId.startsWith("column-")) {
+      targetStage = overId.replace("column-", "") as Stage;
+    } else {
+      const overProspect = prospects.find((p) => p.id === overId);
+      if (overProspect) targetStage = overProspect.stage;
+    }
+
+    if (!targetStage) return;
+
+    const activeProspectData = prospects.find((p) => p.id === activeId);
+    if (!activeProspectData) return;
+
+    // Only update if stage actually changed
+    if (activeProspectData.stage !== targetStage) {
+      handleStageChange(activeId, targetStage);
     }
   };
 
@@ -391,6 +660,15 @@ export default function CRMPipeline() {
 
   return (
     <div className="p-6 space-y-5">
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          style: { background: "#1e1e2e", color: "#e4e4e7", border: "1px solid rgba(255,255,255,0.1)" },
+          success: { iconTheme: { primary: "#34d399", secondary: "#1e1e2e" } },
+          error: { iconTheme: { primary: "#f87171", secondary: "#1e1e2e" } },
+        }}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
@@ -401,6 +679,34 @@ export default function CRMPipeline() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          {/* View Mode Toggle */}
+          <div className="flex items-center bg-surface-2 border border-white/5 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setViewMode("kanban")}
+              className={clsx(
+                "flex items-center gap-1.5 px-3 py-2 text-sm transition-colors",
+                viewMode === "kanban"
+                  ? "bg-brand-600/20 text-brand-300"
+                  : "text-zinc-500 hover:text-zinc-300"
+              )}
+            >
+              <LayoutGrid className="w-4 h-4" />
+              Kanban
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              className={clsx(
+                "flex items-center gap-1.5 px-3 py-2 text-sm transition-colors",
+                viewMode === "table"
+                  ? "bg-brand-600/20 text-brand-300"
+                  : "text-zinc-500 hover:text-zinc-300"
+              )}
+            >
+              <TableIcon className="w-4 h-4" />
+              Table
+            </button>
+          </div>
+
           {/* Search */}
           <div className="flex items-center gap-2 px-3 py-2 bg-surface-2 rounded-lg text-zinc-500 text-sm border border-white/5 focus-within:border-brand-500/40 transition-colors">
             <Search className="w-4 h-4 flex-shrink-0" />
@@ -490,20 +796,41 @@ export default function CRMPipeline() {
         </div>
       )}
 
-      {/* Kanban Board */}
-      <div className="overflow-x-auto pb-4 -mx-2 px-2">
-        <div className="flex gap-4 min-w-max">
-          {STAGES.map((stage) => (
-            <KanbanColumn
-              key={stage}
-              stage={stage}
-              prospects={prospects}
-              loading={loading}
-              onCardClick={setSelectedProspect}
-            />
-          ))}
-        </div>
-      </div>
+      {/* View: Kanban or Table */}
+      {viewMode === "kanban" ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="overflow-x-auto pb-4 -mx-2 px-2">
+            <div className="flex gap-4 min-w-max">
+              {STAGES.map((stage) => (
+                <DroppableKanbanColumn
+                  key={stage}
+                  stage={stage}
+                  prospects={prospects}
+                  loading={loading}
+                  onCardClick={setSelectedProspect}
+                  isOver={overColumn === stage}
+                />
+              ))}
+            </div>
+          </div>
+          <DragOverlay dropAnimation={null}>
+            {activeProspect ? <DragOverlayCard prospect={activeProspect} /> : null}
+          </DragOverlay>
+        </DndContext>
+      ) : (
+        <TableView
+          prospects={prospects}
+          loading={loading}
+          onStageChange={handleStageChange}
+          onRowClick={setSelectedProspect}
+        />
+      )}
 
       {/* Prospect Detail Modal */}
       {selectedProspect && (

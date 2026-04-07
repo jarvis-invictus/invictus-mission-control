@@ -11,6 +11,9 @@ services:
       - "3100:3000"
     environment:
       - NODE_ENV=production
+      - DOCS_PATH=/workspace/docs
+    volumes:
+      - /opt/invictus-workspace/docs:/workspace/docs:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.mission-control.rule=Host(`control.invictus-ai.in`)"
@@ -18,8 +21,8 @@ services:
       - "traefik.http.routers.mission-control.tls.certresolver=letsencrypt"
       - "traefik.http.services.mission-control.loadbalancer.server.port=3000"
     networks:
-      - traefik-public
+      - traefik_shared
 
 networks:
-  traefik-public:
+  traefik_shared:
     external: true

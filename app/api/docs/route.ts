@@ -2,7 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-const DOCS_DIR = "/data/.openclaw/workspace/docs";
+function getDocsDir(): string {
+  const candidates = [
+    process.env.DOCS_PATH,
+    "/workspace/docs",
+    "/data/.openclaw/workspace/docs",
+  ].filter(Boolean) as string[];
+
+  for (const dir of candidates) {
+    if (fs.existsSync(dir)) {
+      console.log(`[docs API] Using docs directory: ${dir}`);
+      return dir;
+    }
+  }
+
+  console.warn(`[docs API] No docs directory found. Tried: ${candidates.join(", ")}`);
+  return candidates[0] || "/workspace/docs";
+}
+
+const DOCS_DIR = getDocsDir();
 
 function categorize(filename: string): string {
   const f = filename.toLowerCase();
@@ -32,12 +50,32 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const search = (searchParams.get("search") || "").toLowerCase();
     const category = (searchParams.get("category") || "").toLowerCase();
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "0", 10);
 
     if (!fs.existsSync(DOCS_DIR)) {
-      return NextResponse.json({ docs: [], total: 0 });
+      console.warn(`[docs API] Directory does not exist: ${DOCS_DIR}`);
+      return NextResponse.json({
+        docs: [],
+        total: 0,
+        docsPath: DOCS_DIR,
+        message: `Docs directory not found: ${DOCS_DIR}`,
+      });
     }
 
-    const entries = fs.readdirSync(DOCS_DIR, { withFileTypes: true });
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(DOCS_DIR, { withFileTypes: true });
+    } catch (err) {
+      console.error(`[docs API] Failed to read directory ${DOCS_DIR}:`, err);
+      return NextResponse.json({
+        docs: [],
+        total: 0,
+        docsPath: DOCS_DIR,
+        message: `Cannot read docs directory: ${DOCS_DIR}`,
+      });
+    }
+
     const docs: Array<{
       slug: string;
       filename: string;
@@ -95,8 +133,28 @@ export async function GET(req: NextRequest) {
 
     docs.sort((a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime());
 
-    return NextResponse.json({ docs, total: docs.length });
+    const total = docs.length;
+
+    // Pagination support
+    if (limit > 0) {
+      const start = (page - 1) * limit;
+      const paged = docs.slice(start, start + limit);
+      return NextResponse.json({
+        docs: paged,
+        total,
+        page,
+        limit,
+        hasMore: start + limit < total,
+        docsPath: DOCS_DIR,
+      });
+    }
+
+    return NextResponse.json({ docs, total, docsPath: DOCS_DIR });
   } catch (err) {
-    return NextResponse.json({ error: "Failed to read docs" }, { status: 500 });
+    console.error("[docs API] Unexpected error:", err);
+    return NextResponse.json(
+      { error: "Failed to read docs", docs: [], total: 0 },
+      { status: 500 }
+    );
   }
 }
