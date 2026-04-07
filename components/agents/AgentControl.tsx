@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  RefreshCw, Clock, Loader2, Pause, Zap, Users, Gauge, Server,
+  RefreshCw, Clock, Loader2, Pause, Zap, Users, Gauge, Server, ChevronDown,
 } from "lucide-react";
 import { clsx } from "clsx";
 import Chart from "../charts/Chart";
 import type { EChartsOption } from "echarts";
+import AgentWorkspace from "./AgentWorkspace";
 
 /* ================================================================
    TYPES
@@ -461,6 +462,7 @@ export default function AgentControl() {
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL / 1000);
   const [checkingAgent, setCheckingAgent] = useState<string | null>(null);
+  const [fleetCollapsed, setFleetCollapsed] = useState(true);
 
   const fetchFleet = useCallback(async (isRefresh = false) => {
     try {
@@ -592,6 +594,22 @@ export default function AgentControl() {
         </div>
       </div>
 
+      {/* Collapsible Fleet Dashboard */}
+      <div className="bg-surface-2 border border-surface-4 rounded-xl overflow-hidden">
+        <button
+          onClick={() => setFleetCollapsed(!fleetCollapsed)}
+          className="flex items-center justify-between w-full px-4 py-3 hover:bg-surface-3/50 transition-colors"
+        >
+          <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+            <Gauge className="w-4 h-4" />
+            Fleet Dashboard &amp; Health
+          </h2>
+          <ChevronDown className={clsx("w-4 h-4 text-zinc-500 transition-transform", fleetCollapsed && "-rotate-90")} />
+        </button>
+
+        {!fleetCollapsed && (
+          <div className="px-4 pb-4 space-y-4 border-t border-surface-4 pt-4">
+
       {/* Error banner */}
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 flex items-center gap-3">
@@ -679,6 +697,13 @@ export default function AgentControl() {
           ))}
         </div>
       </div>
+
+          </div>
+        )}
+      </div>
+
+      {/* =============== WORKSPACE BROWSER — DOMINANT SECTION =============== */}
+      <AgentWorkspace />
     </div>
   );
 }

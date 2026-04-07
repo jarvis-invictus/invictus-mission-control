@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   mission-control:
     build:
@@ -12,8 +10,16 @@ services:
     environment:
       - NODE_ENV=production
       - DOCS_PATH=/workspace/docs
+      - AGENTS_WORKSPACE_ROOT=/workspace/agents
     volumes:
+      # Shared docs
       - /opt/invictus-workspace/docs:/workspace/docs:ro
+      # Agent workspaces (read-write for editing SOUL/MEMORY)
+      - /docker/openclaw-elon/data/.openclaw/workspace:/workspace/agents/elon
+      - /docker/openclaw-closer/data/.openclaw/workspace:/workspace/agents/jordan
+      - /docker/openclaw-ogilvy/data/.openclaw/workspace:/workspace/agents/gary
+      - /docker/openclaw-forge/data/.openclaw/workspace:/workspace/agents/linus
+      - /docker/openclaw-friend/data/.openclaw/workspace:/workspace/agents/friend
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.mission-control.rule=Host(`control.invictus-ai.in`)"
