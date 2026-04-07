@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { getDashboard } from "@/lib/api";
 import Chart from "@/components/charts/Chart";
+import FleetStatusLive from "./FleetStatusLive";
 import type { EChartsOption } from "echarts";
 
 // ============ TYPES ============
@@ -349,17 +350,9 @@ export default function CommandCenter() {
           )}
         </div>
 
-        {/* Agent Fleet */}
-        <div className="bg-surface-2 rounded-xl p-6 border border-white/5">
-          <h2 className="text-lg font-semibold text-white mb-4">Fleet Status</h2>
-          <div className="space-y-2">
-            <AgentStatus name="Jarvis" status="online" task="Gateway + Infrastructure" uptime="7h 14m" />
-            <AgentStatus name="Elon" status="online" task="Planning + Coordination" uptime="24/7" />
-            <AgentStatus name="Linus" status="online" task="Build & Deploy" uptime="2h 03m" />
-            <AgentStatus name="Jordan" status="online" task="Revenue & Outreach" uptime="12h 45m" />
-            <AgentStatus name="Gary" status="online" task="Growth & Content" uptime="8h 20m" />
-            <AgentStatus name="Friend" status="online" task="Support" uptime="24/7" />
-          </div>
+        {/* Live Fleet Status */}
+        <div className="bg-surface-1 rounded-2xl p-6 border border-surface-5">
+          <FleetStatusLive />
         </div>
       </div>
 
