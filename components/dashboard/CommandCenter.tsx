@@ -8,6 +8,8 @@ import {
 import { getDashboard } from "@/lib/api";
 import Chart from "@/components/charts/Chart";
 import FleetStatusLive from "./FleetStatusLive";
+import LiveFeed from "./LiveFeed";
+import QuickActions from "./QuickActions";
 import type { EChartsOption } from "echarts";
 
 // ============ TYPES ============
@@ -304,6 +306,14 @@ export default function CommandCenter() {
         />
       </div>
 
+      {/* Quick Actions */}
+      <div className="bg-surface-1 rounded-2xl p-5 border border-surface-5">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-sm font-semibold text-white">⚡ Quick Actions</span>
+        </div>
+        <QuickActions />
+      </div>
+
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Pipeline Overview */}
@@ -432,20 +442,10 @@ export default function CommandCenter() {
             />
           </div>
           <div className="bg-surface-2 rounded-xl p-6 border border-white/5">
-            <h3 className="text-sm font-medium text-zinc-400 mb-4">Activity Timeline</h3>
-            {(data?.recentActivities?.length ?? 0) > 0 ? (
-              <Chart
-                option={activityLineOption(data?.recentActivities ?? [])}
-                height="260px"
-                loading={loading && !data}
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center h-[260px] text-zinc-500">
-                <Activity className="w-10 h-10 mb-3 opacity-30" />
-                <span className="text-sm">No recent activity</span>
-                <span className="text-xs mt-1 text-zinc-600">Activities will appear here as prospects are contacted</span>
-              </div>
-            )}
+            <h3 className="text-sm font-medium text-zinc-400 mb-4">Recent Activity</h3>
+            <div className="h-[260px] overflow-hidden">
+              <LiveFeed />
+            </div>
           </div>
           <div className="bg-surface-2 rounded-xl p-6 border border-white/5">
             <h3 className="text-sm font-medium text-zinc-400 mb-4">🦷 Dental Focus</h3>
