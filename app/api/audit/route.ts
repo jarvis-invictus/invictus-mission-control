@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { readFileSync } from 'fs';
+
 
 const execAsync = promisify(exec);
 
-async function run(cmd: string, timeoutMs = 10000): Promise<string> {
+async function run(cmd: string, timeoutMs = 15000): Promise<string> {
   try {
-    const { stdout } = await execAsync(cmd, { timeout: timeoutMs });
+    const { stdout } = await execAsync(cmd, { timeout: timeoutMs, maxBuffer: 1024 * 1024 });
     return stdout.trim();
   } catch (e: any) {
     return e.stdout?.trim() || '';
@@ -16,23 +16,18 @@ async function run(cmd: string, timeoutMs = 10000): Promise<string> {
 
 export async function GET() {
   try {
-    // All commands run locally inside the container — docker socket is mounted
-    const [ramSwap, dockerStats, dockerImages, dockerSystem, loadInfo, uptimeInfo] = await Promise.all([
-      run("free -m"),
-      run("docker stats --no-stream --format '{{.Name}}|{{.MemUsage}}|{{.MemPerc}}|{{.CPUPerc}}'"),
-      run("docker images --format '{{.Repository}}|{{.Tag}}|{{.Size}}|{{.ID}}'"),
-      run("docker system df --format '{{.Type}}|{{.TotalCount}}|{{.Size}}|{{.Reclaimable}}'"),
-      run("cat /proc/loadavg"),
-      run("uptime -p 2>/dev/null || echo 'N/A'"),
-    ]);
+    const fmt_stats = "'{{.Name}}|{{.MemUsage}}|{{.MemPerc}}|{{.CPUPerc}}'";
+    const fmt_images = "'{{.Repository}}|{{.Tag}}|{{.Size}}|{{.ID}}'";
+    const fmt_sysdf = "'{{.Type}}|{{.TotalCount}}|{{.Size}}|{{.Reclaimable}}'";
 
-    // Disk — read from /hostfs/proc if mounted, or use df on /
-    let dfOut = '';
-    try {
-      dfOut = await run("df / | tail -1");
-    } catch {
-      dfOut = '';
-    }
+    // Run sequentially to avoid overwhelming docker socket
+    const ramSwap = await run("free -m");
+    const dockerStats = await run(`docker stats --no-stream --format ${fmt_stats}`, 20000);
+    const dockerImages = await run(`docker images --format ${fmt_images}`);
+    const dockerSystem = await run(`docker system df --format ${fmt_sysdf}`);
+    const loadInfo = await run("cat /proc/loadavg");
+    const uptimeInfo = await run("uptime -p 2>/dev/null || echo N/A");
+    const dfOut = await run("df / | tail -1");
 
     // Parse RAM
     const ramLine = ramSwap.split('\n').find(l => l.startsWith('Mem:'));
