@@ -4,9 +4,18 @@ import { useState, useMemo, useCallback } from "react";
 import {
   AlertTriangle, AlertCircle, Clock, Circle, Plus,
   X, CheckCircle2, User, ArrowRight, Search,
-  ChevronRight, Trash2, Edit3,
+  ChevronRight, Trash2, Edit3, Send, Loader2,
 } from "lucide-react";
 import { clsx } from "clsx";
+
+const ASSIGNABLE_AGENTS = [
+  { id: "elon", name: "Elon", emoji: "🎖️" },
+  { id: "jarvis", name: "Jarvis", emoji: "🏛️" },
+  { id: "linus", name: "Linus", emoji: "⚙️" },
+  { id: "jordan", name: "Jordan", emoji: "📞" },
+  { id: "gary", name: "Gary", emoji: "📣" },
+  { id: "friend", name: "Friend", emoji: "👋" },
+];
 
 /* ------------------------------------------------------------------ */
 /*  TYPES                                                              */
@@ -173,9 +182,42 @@ function BlockerCard({ blocker, onMove, onDelete }: {
   onDelete: (id: number) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [showAssign, setShowAssign] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+  const [assignResult, setAssignResult] = useState<string | null>(null);
   const colIdx = COLUMNS.findIndex(c => c.status === blocker.status);
   const nextCol = colIdx < COLUMNS.length - 1 ? COLUMNS[colIdx + 1] : null;
   const prevCol = colIdx > 0 ? COLUMNS[colIdx - 1] : null;
+
+  async function assignToAgent(agentId: string) {
+    setAssigning(true);
+    setAssignResult(null);
+    try {
+      const res = await fetch("/api/blockers/assign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentId,
+          title: blocker.title,
+          description: blocker.description,
+          severity: blocker.severity,
+          assignedBy: "Sahil (Mission Control)",
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAssignResult(`✅ Sent to ${data.agent}`);
+        onMove(blocker.id, "IN PROGRESS");
+      } else {
+        setAssignResult(`❌ ${data.message || data.error}`);
+      }
+    } catch (e) {
+      setAssignResult("❌ Failed to send");
+    } finally {
+      setAssigning(false);
+      setTimeout(() => { setAssignResult(null); setShowAssign(false); }, 3000);
+    }
+  }
 
   return (
     <div className={clsx(
@@ -212,7 +254,7 @@ function BlockerCard({ blocker, onMove, onDelete }: {
       )}
 
       {/* Action Buttons */}
-      <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-white/5">
+      <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-white/5 flex-wrap">
         {prevCol && (
           <button
             onClick={() => onMove(blocker.id, prevCol.status)}
@@ -236,6 +278,16 @@ function BlockerCard({ blocker, onMove, onDelete }: {
             {nextCol.label} →
           </button>
         )}
+        {blocker.status !== "RESOLVED" && (
+          <button
+            onClick={() => setShowAssign(!showAssign)}
+            className="flex items-center gap-1 px-2 py-1 text-[10px] rounded bg-brand-500/10 text-brand-400 hover:bg-brand-500/20 transition-colors font-medium"
+            title="Assign to agent"
+          >
+            <Send className="w-2.5 h-2.5" />
+            Assign
+          </button>
+        )}
         <button
           onClick={() => onDelete(blocker.id)}
           className="ml-auto p-1 text-zinc-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
@@ -244,6 +296,34 @@ function BlockerCard({ blocker, onMove, onDelete }: {
           <Trash2 className="w-3 h-3" />
         </button>
       </div>
+
+      {/* Agent Assignment Picker */}
+      {showAssign && (
+        <div className="mt-2 p-2 bg-surface-4 rounded-lg border border-white/5">
+          {assignResult ? (
+            <p className="text-xs text-center py-1">{assignResult}</p>
+          ) : assigning ? (
+            <div className="flex items-center gap-2 justify-center py-1 text-xs text-zinc-400">
+              <Loader2 className="w-3 h-3 animate-spin" /> Sending...
+            </div>
+          ) : (
+            <>
+              <p className="text-[10px] text-zinc-500 mb-1.5">Send to agent:</p>
+              <div className="flex flex-wrap gap-1">
+                {ASSIGNABLE_AGENTS.map(a => (
+                  <button
+                    key={a.id}
+                    onClick={() => assignToAgent(a.id)}
+                    className="flex items-center gap-1 px-2 py-1 text-[10px] rounded bg-surface-3 hover:bg-brand-500/15 hover:text-brand-400 text-zinc-400 transition-colors"
+                  >
+                    <span>{a.emoji}</span> {a.name}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

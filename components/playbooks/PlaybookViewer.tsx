@@ -6,6 +6,8 @@ import {
   ChevronRight, RefreshCw, Plus, Zap,
 } from "lucide-react";
 import { clsx } from "clsx";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -527,8 +529,25 @@ export default function PlaybookViewer() {
                 </div>
               ) : (
                 <div
-                  className="prose prose-invert max-w-none"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(docContent) }}
+                  className="prose prose-invert prose-sm max-w-none
+                    prose-headings:text-white prose-h1:text-2xl prose-h1:font-bold prose-h1:border-b prose-h1:border-white/10 prose-h1:pb-3
+                    prose-h2:text-xl prose-h2:font-semibold prose-h2:text-zinc-200 prose-h2:mt-8 prose-h2:mb-3
+                    prose-h3:text-lg prose-h3:font-medium prose-h3:text-zinc-300
+                    prose-p:text-zinc-300 prose-p:leading-relaxed
+                    prose-a:text-brand-400 prose-a:no-underline hover:prose-a:underline
+                    prose-strong:text-white
+                    prose-code:text-brand-300 prose-code:bg-surface-3 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none
+                    prose-pre:bg-surface-3 prose-pre:border prose-pre:border-white/5 prose-pre:rounded-lg
+                    prose-table:border-collapse
+                    prose-th:bg-surface-3 prose-th:px-3 prose-th:py-2 prose-th:text-left prose-th:text-xs prose-th:font-semibold prose-th:text-zinc-300 prose-th:border prose-th:border-white/10
+                    prose-td:px-3 prose-td:py-2 prose-td:text-sm prose-td:text-zinc-400 prose-td:border prose-td:border-white/10
+                    prose-li:text-zinc-300
+                    prose-blockquote:border-brand-400/30 prose-blockquote:text-zinc-400
+                    prose-hr:border-white/10
+                  "
+                >
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{docContent}</ReactMarkdown>
+                </div>
                 />
               )}
             </div>

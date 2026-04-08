@@ -311,7 +311,7 @@ export default function CommandCenter() {
         <FleetStatusLive />
       </div>
 
-      {/* Today's Priority Tasks — from live CRM data */}
+      {/* Today's Priorities */}
       <div className="bg-surface-2 rounded-xl p-6 border border-white/5">
         <h2 className="text-lg font-semibold text-white mb-4">Today&apos;s Priorities</h2>
         {dueTasks.length > 0 ? (
@@ -332,8 +332,22 @@ export default function CommandCenter() {
             })}
           </div>
         ) : (
-          <div className="text-sm text-zinc-500 text-center py-8">
-            No due tasks — all clear ✓
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-surface-3 rounded-lg border-l-2 border-red-500">
+              <div className="text-xs text-red-400 font-medium uppercase tracking-wider mb-2">Critical · Sahil</div>
+              <div className="text-sm text-zinc-200 font-medium">Decide 2-3 Focus Niches</div>
+              <div className="text-xs text-zinc-500 mt-1">All vertical-building and outreach is stalled until niches are selected.</div>
+            </div>
+            <div className="p-4 bg-surface-3 rounded-lg border-l-2 border-amber-500">
+              <div className="text-xs text-amber-400 font-medium uppercase tracking-wider mb-2">High · Sahil</div>
+              <div className="text-sm text-zinc-200 font-medium">Define Pricing & Offer</div>
+              <div className="text-xs text-zinc-500 mt-1">Sales can&apos;t close without pricing tiers. What do we deliver and for how much?</div>
+            </div>
+            <div className="p-4 bg-surface-3 rounded-lg border-l-2 border-brand-500">
+              <div className="text-xs text-brand-400 font-medium uppercase tracking-wider mb-2">In Progress · Elon</div>
+              <div className="text-sm text-zinc-200 font-medium">MC Dashboard Rebuild</div>
+              <div className="text-xs text-zinc-500 mt-1">V4 rebuild active — fixing performance, Kanban, doc viewer, activity feed.</div>
+            </div>
           </div>
         )}
       </div>
