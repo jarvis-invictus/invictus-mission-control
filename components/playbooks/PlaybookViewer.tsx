@@ -548,7 +548,6 @@ export default function PlaybookViewer() {
                 >
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{docContent}</ReactMarkdown>
                 </div>
-                />
               )}
             </div>
           </div>
