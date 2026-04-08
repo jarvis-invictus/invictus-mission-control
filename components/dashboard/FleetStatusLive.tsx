@@ -119,9 +119,9 @@ export default function FleetStatusLive() {
       </div>
 
       {/* System bar */}
-      <div className="flex items-center gap-4 px-4 py-2.5 bg-surface-2/50 rounded-xl border border-surface-5">
+      <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-surface-2/50 rounded-xl border border-surface-5">
         <div className="flex items-center gap-2 text-xs">
-          <MemoryStick className="w-3.5 h-3.5 text-accent-cyan" />
+          <MemoryStick className="w-3.5 h-3.5 text-zinc-400" />
           <span className="text-zinc-400">RAM</span>
           <span className={clsx(
             "font-mono font-semibold",
@@ -142,7 +142,7 @@ export default function FleetStatusLive() {
         </div>
         <div className="w-px h-4 bg-surface-5" />
         <div className="flex items-center gap-2 text-xs">
-          <Cpu className="w-3.5 h-3.5 text-accent-purple" />
+          <Cpu className="w-3.5 h-3.5 text-zinc-400" />
           <span className="text-zinc-400">Load</span>
           <span className="text-zinc-300 font-mono">{data.system.loadAvg || "—"}</span>
           <span className="text-zinc-600">({data.system.cpuCores} cores)</span>
