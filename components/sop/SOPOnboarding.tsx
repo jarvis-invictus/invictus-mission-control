@@ -14,8 +14,8 @@ const steps = [
     title: "Discovery Call",
     icon: Phone,
     time: "15 min",
-    color: "text-blue-400",
-    bg: "bg-blue-500/10 border-blue-500/20",
+    color: "text-brand-400",
+    bg: "bg-brand-400/10 border-brand-400/20",
     summary: "Understand needs, show demo, confirm package",
     details: [
       "Schedule 15-minute intro call with clinic owner",
@@ -31,8 +31,8 @@ const steps = [
     title: "Onboarding Form",
     icon: FileText,
     time: "24 hrs (client)",
-    color: "text-purple-400",
-    bg: "bg-purple-500/10 border-purple-500/20",
+    color: "text-zinc-300",
+    bg: "bg-zinc-700/30 border-zinc-600/20",
     summary: "Collect all clinic details and branding assets",
     details: [
       "Clinic name, address, phone number",
@@ -84,8 +84,8 @@ const steps = [
     title: "Review Cycle",
     icon: MessageSquare,
     time: "Day 2",
-    color: "text-cyan-400",
-    bg: "bg-cyan-500/10 border-cyan-500/20",
+    color: "text-brand-400",
+    bg: "bg-brand-400/10 border-brand-400/20",
     summary: "Share preview, collect feedback, revise (2 rounds max)",
     details: [
       "Share preview link with client via WhatsApp/email",
@@ -100,7 +100,7 @@ const steps = [
     title: "Launch",
     icon: Rocket,
     time: "Day 3",
-    color: "text-rose-400",
+    color: "text-zinc-400",
     bg: "bg-rose-500/10 border-rose-500/20",
     summary: "Domain, DNS, SSL, go-live, hand over credentials",
     details: [
@@ -140,8 +140,8 @@ export default function SOPOnboarding() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-            <CheckCircle2 className="w-5 h-5 text-purple-400" />
+          <div className="w-10 h-10 rounded-xl bg-zinc-700/30 border border-zinc-600/20 flex items-center justify-center">
+            <CheckCircle2 className="w-5 h-5 text-zinc-300" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white">SOP: Client Onboarding</h1>

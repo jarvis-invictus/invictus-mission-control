@@ -64,9 +64,9 @@ const KEY_FILE_ICONS: Record<string, { icon: string; label: string }> = {
 
 const QUICK_FILES = [
   { key: "SOUL.md", icon: "⚡", label: "SOUL", color: "text-yellow-400" },
-  { key: "MEMORY.md", icon: "🧠", label: "Memory", color: "text-purple-400" },
-  { key: "IDENTITY.md", icon: "🎭", label: "Identity", color: "text-cyan-400" },
-  { key: "HEARTBEAT.md", icon: "💓", label: "Heartbeat", color: "text-pink-400" },
+  { key: "MEMORY.md", icon: "🧠", label: "Memory", color: "text-brand-400" },
+  { key: "IDENTITY.md", icon: "🎭", label: "Identity", color: "text-zinc-300" },
+  { key: "HEARTBEAT.md", icon: "💓", label: "Heartbeat", color: "text-zinc-300" },
 ];
 
 /* ================================================================
@@ -894,7 +894,7 @@ export default function AgentWorkspace() {
           {showMemoryTimeline ? (
             <div className="flex-1 overflow-y-auto p-4">
               <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                <Brain className="w-4 h-4 text-purple-400" />
+                <Brain className="w-4 h-4 text-brand-400" />
                 Memory Timeline — {currentAgentInfo?.name || selectedAgent}
               </h3>
               <MemoryTimeline

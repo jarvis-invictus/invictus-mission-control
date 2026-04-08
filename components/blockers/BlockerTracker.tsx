@@ -111,9 +111,9 @@ const initialBlockers: Blocker[] = [
 
 const severityConfig: Record<Severity, { color: string; bg: string; border: string; order: number; chartColor: string }> = {
   CRITICAL: { color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20", order: 0, chartColor: "#ef4444" },
-  HIGH: { color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20", order: 1, chartColor: "#f97316" },
+  HIGH: { color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20", order: 1, chartColor: "#CCFF00" },
   MEDIUM: { color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", order: 2, chartColor: "#eab308" },
-  LOW: { color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", order: 3, chartColor: "#3b82f6" },
+  LOW: { color: "text-zinc-400", bg: "bg-zinc-500/10", border: "border-zinc-500/20", order: 3, chartColor: "#71717a" },
 };
 
 const statusConfig: Record<Status, { color: string; bg: string; icon: typeof Circle; next: Status }> = {
@@ -143,7 +143,7 @@ function daysBlocked(createdAt: string): number {
 
 function ImpactBar({ score }: { score: number }) {
   const pct = (score / 10) * 100;
-  const color = score >= 8 ? "bg-red-500" : score >= 5 ? "bg-amber-500" : "bg-blue-500";
+  const color = score >= 8 ? "bg-red-500" : score >= 5 ? "bg-amber-500" : "bg-zinc-500";
   return (
     <div className="flex items-center gap-2">
       <div className="w-16 h-1.5 bg-surface-3 rounded-full overflow-hidden">

@@ -23,8 +23,8 @@ const agents = [
     deliverable: "Client comms, progress updates",
     timing: "Day 1-3",
     icon: MessageSquare,
-    color: "text-blue-400",
-    bg: "bg-blue-500/10 border-blue-500/20",
+    color: "text-brand-400",
+    bg: "bg-brand-400/10 border-brand-400/20",
   },
   {
     name: "Gary",
@@ -41,7 +41,7 @@ const agents = [
     deliverable: "Logo refinement if needed",
     timing: "Day 1",
     icon: Palette,
-    color: "text-rose-400",
+    color: "text-zinc-400",
     bg: "bg-rose-500/10 border-rose-500/20",
   },
 ];
@@ -51,8 +51,8 @@ const packages = [
     name: "Standard",
     price: "₹8,000",
     color: "border-blue-500/20",
-    accent: "text-blue-400",
-    bg: "bg-blue-500/5",
+    accent: "text-brand-400",
+    bg: "bg-brand-400/5",
     features: [
       "5-page responsive website",
       "Mobile-first design",
@@ -85,9 +85,9 @@ const packages = [
 ];
 
 const timeline = [
-  { day: "Day 0", label: "Onboarding", desc: "Form submitted, assets collected", icon: FileCheck, color: "text-purple-400" },
+  { day: "Day 0", label: "Onboarding", desc: "Form submitted, assets collected", icon: FileCheck, color: "text-zinc-300" },
   { day: "Day 1", label: "Build", desc: "Template forked, content configured", icon: Code2, color: "text-green-400" },
-  { day: "Day 2", label: "Review", desc: "Preview shared, feedback collected", icon: MessageSquare, color: "text-cyan-400" },
+  { day: "Day 2", label: "Review", desc: "Preview shared, feedback collected", icon: MessageSquare, color: "text-brand-400" },
   { day: "Day 3", label: "Launch", desc: "Domain setup, DNS, SSL, go-live", icon: Zap, color: "text-amber-400" },
 ];
 

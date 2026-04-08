@@ -53,12 +53,12 @@ type DateRange = "all" | "today" | "7days" | "30days";
 
 // ── Status colors ──────────────────────────────────────
 const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string; hex: string }> = {
-  sent:      { bg: "bg-indigo-500/10", text: "text-indigo-400", dot: "bg-indigo-400", hex: "#CCFF00" },
+  sent:      { bg: "bg-brand-400/10", text: "text-brand-400", dot: "bg-brand-400", hex: "#CCFF00" },
   delivered: { bg: "bg-emerald-500/10", text: "text-emerald-400", dot: "bg-emerald-400", hex: "#10b981" },
-  opened:    { bg: "bg-cyan-500/10", text: "text-cyan-400", dot: "bg-cyan-400", hex: "#06b6d4" },
+  opened:    { bg: "bg-zinc-700/30", text: "text-zinc-300", dot: "bg-zinc-400", hex: "#06b6d4" },
   pending:   { bg: "bg-amber-500/10", text: "text-amber-400", dot: "bg-amber-400", hex: "#f59e0b" },
   failed:    { bg: "bg-red-500/10", text: "text-red-400", dot: "bg-red-400", hex: "#ef4444" },
-  bounced:   { bg: "bg-orange-500/10", text: "text-orange-400", dot: "bg-orange-400", hex: "#f59e0b" },
+  bounced:   { bg: "bg-zinc-700/30", text: "text-zinc-400", dot: "bg-zinc-500", hex: "#f59e0b" },
 };
 
 // ── Status badge helper ────────────────────────────────
@@ -100,9 +100,9 @@ function StatsStrip({ emails }: { emails: EmailRecord[] }) {
   const warmupDay = Math.min(dayCount, 21);
 
   const stats = [
-    { label: "Total Sent", value: totalSent.toString(), icon: Send, color: "text-indigo-400", bg: "bg-indigo-500/10" },
+    { label: "Total Sent", value: totalSent.toString(), icon: Send, color: "text-brand-400", bg: "bg-brand-400/10" },
     { label: "Delivery Rate", value: `${deliveryRate}%`, icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-500/10" },
-    { label: "Open Rate", value: `${openRate}%`, icon: Eye, color: "text-cyan-400", bg: "bg-cyan-500/10" },
+    { label: "Open Rate", value: `${openRate}%`, icon: Eye, color: "text-zinc-300", bg: "bg-zinc-700/30" },
     { label: "Warmup Day", value: `${warmupDay}/21`, icon: Flame, color: "text-amber-400", bg: "bg-amber-500/10" },
   ];
 
@@ -264,9 +264,9 @@ function AnalyticsTab({ emails }: { emails: EmailRecord[] }) {
   return (
     <div className="space-y-6">
       {!hasData && (
-        <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-4 flex items-center gap-3">
-          <BarChart3 className="w-5 h-5 text-indigo-400 flex-shrink-0" />
-          <p className="text-sm text-indigo-300">Showing sample projection data. Real analytics will appear as emails are sent.</p>
+        <div className="bg-brand-400/5 border border-brand-400/20 rounded-xl p-4 flex items-center gap-3">
+          <BarChart3 className="w-5 h-5 text-brand-400 flex-shrink-0" />
+          <p className="text-sm text-brand-300">Showing sample projection data. Real analytics will appear as emails are sent.</p>
         </div>
       )}
       {/* Send Volume */}
@@ -487,10 +487,10 @@ function HistoryTab({ emails, loading, error, onRefresh, onReply, onForward }: {
                     {/* Direction icon */}
                     <div className={clsx(
                       "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
-                      isOutbound ? "bg-blue-500/10" : "bg-emerald-500/10"
+                      isOutbound ? "bg-brand-400/10" : "bg-emerald-500/10"
                     )}>
                       {isOutbound
-                        ? <ArrowUpRight className="w-4 h-4 text-blue-400" />
+                        ? <ArrowUpRight className="w-4 h-4 text-brand-400" />
                         : <ArrowDownLeft className="w-4 h-4 text-emerald-400" />}
                     </div>
 

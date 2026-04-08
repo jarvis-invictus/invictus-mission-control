@@ -47,15 +47,8 @@ function SkeletonMetricCard() {
 function SkeletonPipeline() {
   return (
     <div className="lg:col-span-2 bg-surface-2 rounded-xl p-6 border border-white/5 animate-pulse">
-      <div className="w-40 h-6 rounded bg-white/5 mb-6" />
-      <div className="flex items-center justify-between px-4">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-xl bg-white/5" />
-            <div className="w-14 h-3 rounded bg-white/5" />
-          </div>
-        ))}
-      </div>
+      <div className="w-40 h-6 rounded bg-white/5 mb-4" />
+      <div className="w-full h-16 rounded bg-white/5" />
     </div>
   );
 }
@@ -125,17 +118,6 @@ function AgentStatus({ name, status, task, uptime }: {
         <div className="text-xs text-zinc-500 truncate">{task}</div>
       </div>
       <div className="text-[10px] text-zinc-600 font-mono">{uptime}</div>
-    </div>
-  );
-}
-
-function PipelineStage({ label, count, color }: { label: string; count: number; color: string; }) {
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center text-white font-bold text-lg`}>
-        {count}
-      </div>
-      <span className="text-[10px] text-zinc-500 uppercase tracking-wider text-center">{label}</span>
     </div>
   );
 }

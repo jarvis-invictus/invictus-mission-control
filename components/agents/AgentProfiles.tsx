@@ -423,7 +423,7 @@ function AgentDetail({ agentId, onBack }: { agentId: string; onBack: () => void 
               const dateStr = dateMatch ? new Date(dateMatch[1]).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : mf.name;
               return (
                 <div key={mf.name} className="flex items-start gap-2.5 p-2.5 bg-surface-1 rounded-lg border border-surface-4 hover:border-surface-5 transition-colors">
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-2 flex-shrink-0" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-brand-400 mt-2 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-0.5">
                       <span className="text-xs font-medium text-zinc-300">{dateStr}</span>

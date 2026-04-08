@@ -36,7 +36,7 @@ const ACTIONS: QuickAction[] = [
     description: "190 dental leads — filter view",
     icon: Zap,
     href: "/crm?dental=true",
-    color: "text-cyan-400",
+    color: "text-brand-400",
     badge: "190",
   },
   {
@@ -44,7 +44,7 @@ const ACTIONS: QuickAction[] = [
     description: "Send from jordan@invictus-ai.in",
     icon: Mail,
     href: "/email?tab=compose",
-    color: "text-blue-400",
+    color: "text-brand-400",
   },
   {
     label: "Latest Docs",
@@ -109,7 +109,7 @@ export default function QuickActions() {
                   {action.label}
                 </p>
                 {action.badge && (
-                  <span className="text-[9px] px-1.5 py-0.5 bg-cyan-500/15 text-cyan-400 rounded-full font-bold">
+                  <span className="text-[9px] px-1.5 py-0.5 bg-brand-400/15 text-brand-400 rounded-full font-bold">
                     {action.badge}
                   </span>
                 )}

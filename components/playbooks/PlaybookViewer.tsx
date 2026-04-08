@@ -50,11 +50,11 @@ interface MergedPlaybook {
 /* ------------------------------------------------------------------ */
 
 const DEPT_STYLES: Record<Department, { badge: string; accent: string; glow: string }> = {
-  Sales:       { badge: "bg-blue-500/15 text-blue-400 border-blue-500/20",       accent: "border-l-blue-500",    glow: "hover:shadow-blue-500/10" },
-  Marketing:   { badge: "bg-orange-500/15 text-orange-400 border-orange-500/20", accent: "border-l-orange-500",  glow: "hover:shadow-orange-500/10" },
+  Sales:       { badge: "bg-brand-400/15 text-brand-400 border-brand-400/20",       accent: "border-l-brand-400",    glow: "hover:shadow-brand-400/10" },
+  Marketing:   { badge: "bg-zinc-600/15 text-zinc-300 border-zinc-600/20", accent: "border-l-zinc-500",  glow: "hover:shadow-zinc-500/10" },
   Engineering: { badge: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20", accent: "border-l-emerald-500", glow: "hover:shadow-emerald-500/10" },
-  Delivery:    { badge: "bg-pink-500/15 text-pink-400 border-pink-500/20",       accent: "border-l-pink-500",    glow: "hover:shadow-pink-500/10" },
-  Strategy:    { badge: "bg-purple-500/15 text-purple-400 border-purple-500/20", accent: "border-l-purple-500",  glow: "hover:shadow-purple-500/10" },
+  Delivery:    { badge: "bg-zinc-700/15 text-zinc-400 border-zinc-700/20",       accent: "border-l-zinc-600",    glow: "hover:shadow-zinc-600/10" },
+  Strategy:    { badge: "bg-brand-400/10 text-brand-300 border-brand-400/15", accent: "border-l-brand-300",  glow: "hover:shadow-brand-300/10" },
 };
 
 const ALL_DEPARTMENTS: Department[] = ["Sales", "Marketing", "Engineering", "Delivery", "Strategy"];

@@ -96,8 +96,8 @@ const TEMPERATURES: Temperature[] = ["HOT", "WARM", "COLD"];
 
 const stageConfig: Record<Stage, { label: string; color: string; bgColor: string; borderColor: string; headerBg: string; glowBorder: string; chartColor: string }> = {
   NEW:       { label: "New",       color: "text-zinc-300",    bgColor: "bg-zinc-600",    borderColor: "border-zinc-600",   headerBg: "bg-zinc-800/60",      glowBorder: "border-zinc-400/50 shadow-[0_0_15px_rgba(161,161,170,0.15)]", chartColor: "#CCFF00" },
-  CONTACTED: { label: "Contacted", color: "text-blue-300",    bgColor: "bg-blue-600",    borderColor: "border-blue-600",   headerBg: "bg-blue-900/30",      glowBorder: "border-blue-400/50 shadow-[0_0_15px_rgba(96,165,250,0.2)]",   chartColor: "#00b4d8" },
-  MEETING:   { label: "Meeting",   color: "text-indigo-300",  bgColor: "bg-indigo-600",  borderColor: "border-indigo-600", headerBg: "bg-indigo-900/30",    glowBorder: "border-indigo-400/50 shadow-[0_0_15px_rgba(129,140,248,0.2)]", chartColor: "#f59e0b" },
+  CONTACTED: { label: "Contacted", color: "text-brand-300",    bgColor: "bg-brand-600",    borderColor: "border-brand-600",   headerBg: "bg-brand-900/30",      glowBorder: "border-brand-400/50",   chartColor: "#00b4d8" },
+  MEETING:   { label: "Meeting",   color: "text-zinc-300",  bgColor: "bg-zinc-600",  borderColor: "border-zinc-600", headerBg: "bg-zinc-800/30",    glowBorder: "border-zinc-400/50", chartColor: "#f59e0b" },
   PROPOSAL:  { label: "Proposal",  color: "text-amber-300",   bgColor: "bg-amber-600",   borderColor: "border-amber-600",  headerBg: "bg-amber-900/30",     glowBorder: "border-amber-400/50 shadow-[0_0_15px_rgba(251,191,36,0.2)]",  chartColor: "#f97316" },
   WON:       { label: "Won",       color: "text-emerald-300", bgColor: "bg-emerald-600",  borderColor: "border-emerald-600",headerBg: "bg-emerald-900/30",   glowBorder: "border-emerald-400/50 shadow-[0_0_15px_rgba(52,211,153,0.2)]", chartColor: "#10b981" },
   LOST:      { label: "Lost",      color: "text-red-300",     bgColor: "bg-red-600",     borderColor: "border-red-600",    headerBg: "bg-red-900/30",       glowBorder: "border-red-400/50 shadow-[0_0_15px_rgba(248,113,113,0.2)]",   chartColor: "#ef4444" },
@@ -113,7 +113,7 @@ function TempBadge({ temp }: { temp?: Temperature }) {
   const cfg = {
     HOT:  { icon: Flame,       cls: "bg-red-500/20 text-red-400 border-red-500/30" },
     WARM: { icon: Thermometer, cls: "bg-amber-500/20 text-amber-400 border-amber-500/30" },
-    COLD: { icon: Snowflake,   cls: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30" },
+    COLD: { icon: Snowflake,   cls: "bg-brand-400/20 text-brand-400 border-brand-400/30" },
   }[temp];
   const Icon = cfg.icon;
   return (
@@ -179,8 +179,8 @@ function DentalDashboardCard({
       className={clsx(
         "w-full text-left rounded-xl border-2 p-4 transition-all duration-300 group",
         dentalOnly
-          ? "border-cyan-500/50 bg-cyan-500/5 shadow-[0_0_20px_rgba(0,188,212,0.1)]"
-          : "border-cyan-500/20 bg-surface-2 hover:border-cyan-500/40 hover:bg-cyan-500/[0.03]"
+          ? "border-brand-400/50 bg-brand-400/5 shadow-[0_0_20px_rgba(0,188,212,0.1)]"
+          : "border-brand-400/20 bg-surface-2 hover:border-brand-400/40 hover:bg-brand-400/[0.03]"
       )}
     >
       <div className="flex items-center justify-between">
@@ -190,13 +190,13 @@ function DentalDashboardCard({
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               Dental Pipeline
               {dentalOnly && (
-                <span className="text-[10px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full font-semibold">
+                <span className="text-[10px] bg-brand-400/20 text-brand-400 px-2 py-0.5 rounded-full font-semibold">
                   ACTIVE
                 </span>
               )}
             </h3>
             <p className="text-xs text-zinc-400 mt-0.5">
-              <span className="text-cyan-400 font-semibold">{total}</span> Dental Prospects
+              <span className="text-brand-400 font-semibold">{total}</span> Dental Prospects
               {!dentalOnly && " — Click to filter"}
             </p>
           </div>
@@ -537,7 +537,7 @@ function ProspectDetailModal({
             </h2>
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               {prospect.niche && (
-                <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold border bg-purple-500/20 text-purple-400 border-purple-500/30">
+                <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold border bg-zinc-600/20 text-zinc-300 border-zinc-600/30">
                   <Hash className="w-3 h-3" /> {prospect.niche}
                 </span>
               )}
@@ -585,7 +585,7 @@ function ProspectDetailModal({
             {prospect.email && (
               <a
                 href={`mailto:${prospect.email}`}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 text-xs font-medium hover:bg-blue-500/20 transition-colors border border-blue-500/20"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-brand-400/10 text-brand-400 text-xs font-medium hover:bg-brand-400/20 transition-colors border border-brand-400/20"
               >
                 <Send className="w-3 h-3" /> Email
               </a>
@@ -645,13 +645,13 @@ function ProspectDetailModal({
                 )}
                 {prospect.email && (
                   <a href={`mailto:${prospect.email}`} className="flex items-center gap-2 text-sm text-zinc-300 bg-surface-3 rounded-lg px-3 py-2.5 hover:bg-surface-4 transition-colors">
-                    <Mail className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                    <Mail className="w-4 h-4 text-brand-400 flex-shrink-0" />
                     <span className="truncate">{prospect.email}</span>
                   </a>
                 )}
                 {prospect.city && (
                   <div className="flex items-center gap-2 text-sm text-zinc-300 bg-surface-3 rounded-lg px-3 py-2.5">
-                    <MapPin className="w-4 h-4 text-pink-400 flex-shrink-0" />
+                    <MapPin className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                     <span className="truncate">{prospect.city}</span>
                   </div>
                 )}
@@ -1228,7 +1228,7 @@ function FilterChips({
               activeTempFilter === t
                 ? t === "HOT" ? "bg-red-500/20 text-red-400 border-red-500/30"
                   : t === "WARM" ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
-                  : "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
+                  : "bg-brand-400/20 text-brand-400 border-brand-400/30"
                 : "bg-surface-3 text-zinc-500 border-white/5 hover:text-zinc-300 hover:border-white/10"
             )}
           >
@@ -1244,7 +1244,7 @@ function FilterChips({
             className={clsx(
               "text-[11px] px-2.5 py-1 rounded-full font-semibold border transition-colors",
               activeCityFilter === c
-                ? "bg-pink-500/20 text-pink-400 border-pink-500/30"
+                ? "bg-zinc-600/20 text-zinc-400 border-zinc-600/30"
                 : "bg-surface-3 text-zinc-500 border-white/5 hover:text-zinc-300 hover:border-white/10"
             )}
           >
