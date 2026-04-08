@@ -284,7 +284,7 @@ export default function CommandCenter() {
           change={`${fmt(byStage["CONTACTED"] ?? 0)} contacted`}
           changeType={contactedRate > 0 ? "up" : "neutral"}
           icon={Mail}
-          color="bg-emerald-600"
+          color="bg-brand-400"
         />
         <MetricCard
           title="Conversion Rate"
@@ -292,7 +292,7 @@ export default function CommandCenter() {
           change={`${fmt(byStage["WON"] ?? 0)} won`}
           changeType={conversionRate > 0 ? "up" : "neutral"}
           icon={TrendingUp}
-          color="bg-purple-600"
+          color="bg-brand-400"
         />
         <MetricCard
           title="Due Tasks"
@@ -300,7 +300,7 @@ export default function CommandCenter() {
           change={`${dueTasks.filter(t => t.priority === "P0").length} critical`}
           changeType={dueTasks.filter(t => t.priority === "P0").length > 0 ? "down" : "neutral"}
           icon={Globe}
-          color="bg-amber-600"
+          color="bg-brand-400"
         />
       </div>
 

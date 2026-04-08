@@ -138,71 +138,27 @@ function MdRenderer({ content }: { content: string }) {
    AGENT CARD
    ================================================================ */
 function AgentCard({ agent, onClick }: { agent: AgentSummary; onClick: () => void }) {
-  const fmtSize = (b: number) => b < 1024 * 1024 ? `${(b / 1024).toFixed(0)} KB` : `${(b / (1024 * 1024)).toFixed(1)} MB`;
-  
-  const docBadges = [
-    { key: "hasSOUL", icon: "⚡", label: "Soul", color: "text-brand-400" },
-    { key: "hasMEMORY", icon: "🧠", label: "Memory", color: "text-purple-400" },
-    { key: "hasHEARTBEAT", icon: "💓", label: "Heartbeat", color: "text-pink-400" },
-    { key: "hasIDENTITY", icon: "🎭", label: "Identity", color: "text-accent-cyan" },
-    { key: "hasDECISIONS", icon: "📋", label: "Decisions", color: "text-amber-400" },
-  ];
-
   return (
     <button
       onClick={onClick}
-      className="w-full text-left bg-surface-2 hover:bg-surface-3 border border-surface-4 hover:border-brand-400/30 rounded-xl p-4 transition-all duration-200 group"
+      className="w-full text-left bg-surface-2 hover:bg-surface-3 border border-surface-4 hover:border-brand-400/30 rounded-xl p-5 transition-all duration-200 group"
     >
-      {/* Header — compact */}
-      <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 rounded-lg bg-surface-3 border border-surface-4 group-hover:border-brand-400/30 flex items-center justify-center text-xl transition-colors flex-shrink-0">
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-surface-3 border border-surface-5 group-hover:border-brand-400/30 flex items-center justify-center text-2xl transition-colors flex-shrink-0">
           {agent.emoji}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-bold text-white group-hover:text-brand-400 transition-colors">{agent.name}</h3>
-            <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-400/10 text-brand-400">{agent.role}</span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-surface-3 text-zinc-400 border border-surface-5">{agent.role}</span>
           </div>
-          <p className="text-xs text-zinc-500 font-mono mt-0.5">{agent.model}</p>
+          <p className="text-xs text-zinc-500 mt-1">{agent.title || agent.department}</p>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[10px] text-zinc-600">{agent.fileCount} files</span>
         </div>
       </div>
-
-      {/* Doc badges — small */}
-      <div className="flex flex-wrap gap-1 mb-3">
-        {docBadges.map(badge => {
-          const has = (agent as any)[badge.key];
-          return (
-            <span key={badge.key} className={clsx(
-              "inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium",
-              has ? `${badge.color} bg-surface-3` : "text-zinc-700 bg-surface-1"
-            )}>
-              <span className={has ? "" : "grayscale opacity-30"}>{badge.icon}</span>
-              {badge.label}
-            </span>
-          );
-        })}
-      </div>
-
-      {/* Stats — compact row */}
-      <div className="grid grid-cols-3 gap-1.5 mb-3">
-        {[
-          { v: agent.soulLines, l: "Soul" },
-          { v: agent.memoryWords.toLocaleString(), l: "Words" },
-          { v: agent.fileCount, l: "Files" },
-        ].map(s => (
-          <div key={s.l} className="bg-surface-1 rounded-lg px-2 py-1.5 text-center">
-            <p className="text-xs font-bold text-white">{s.v}</p>
-            <p className="text-[9px] text-zinc-600">{s.l}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Soul preview */}
-      {agent.soulPreview && (
-        <p className="text-[11px] text-zinc-500 line-clamp-2 italic leading-relaxed">
-          &quot;{agent.soulPreview.replace(/^#.*\n/, '').trim().slice(0, 100)}...&quot;
-        </p>
-      )}
     </button>
   );
 }
