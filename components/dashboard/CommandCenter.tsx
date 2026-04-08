@@ -75,13 +75,13 @@ function SkeletonFleet() {
 
 // ============ DISPLAY COMPONENTS ============
 function MetricCard({
-  title, value, change, changeType, icon: Icon, color
+  title, value, change, changeType, icon: Icon, color, href
 }: {
   title: string; value: string; change: string; changeType: "up" | "down" | "neutral";
-  icon: React.ElementType; color: string;
+  icon: React.ElementType; color: string; href?: string;
 }) {
-  return (
-    <div className="bg-surface-2 rounded-xl p-5 border border-white/5 hover:border-white/10 transition-all group">
+  const content = (
+    <div className={`bg-surface-2 rounded-xl p-5 border border-white/5 hover:border-brand-400/20 transition-all group ${href ? "cursor-pointer" : ""}`}>
       <div className="flex items-start justify-between mb-4">
         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${color}`}>
           <Icon className="w-5 h-5 text-white" />
@@ -94,10 +94,18 @@ function MetricCard({
           {change}
         </div>
       </div>
-      <div className="text-2xl font-bold text-white mb-1">{value}</div>
-      <div className="text-sm text-zinc-500">{title}</div>
+      <div className="text-2xl font-bold text-white group-hover:text-brand-400 transition-colors mb-1">{value}</div>
+      <div className="text-sm text-zinc-500 flex items-center justify-between">
+        <span>{title}</span>
+        {href && <span className="text-[10px] text-zinc-600 group-hover:text-brand-400/50 transition-colors">Click to view →</span>}
+      </div>
     </div>
   );
+
+  if (href) {
+    return <a href={href}>{content}</a>;
+  }
+  return content;
 }
 
 function AgentStatus({ name, status, task, uptime }: {
@@ -277,6 +285,7 @@ export default function CommandCenter() {
           changeType={hotProspects > 0 ? "up" : "neutral"}
           icon={Users}
           color="bg-brand-400"
+          href="/crm"
         />
         <MetricCard
           title="Contacted Rate"
@@ -285,6 +294,7 @@ export default function CommandCenter() {
           changeType={contactedRate > 0 ? "up" : "neutral"}
           icon={Mail}
           color="bg-brand-400"
+          href="/crm"
         />
         <MetricCard
           title="Conversion Rate"
@@ -293,6 +303,7 @@ export default function CommandCenter() {
           changeType={conversionRate > 0 ? "up" : "neutral"}
           icon={TrendingUp}
           color="bg-brand-400"
+          href="/crm"
         />
         <MetricCard
           title="Due Tasks"
@@ -301,6 +312,7 @@ export default function CommandCenter() {
           changeType={dueTasks.filter(t => t.priority === "P0").length > 0 ? "down" : "neutral"}
           icon={Globe}
           color="bg-brand-400"
+          href="/blockers"
         />
       </div>
 
