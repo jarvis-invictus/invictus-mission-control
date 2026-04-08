@@ -48,7 +48,6 @@ const sections: NavSection[] = [
     title: "Fleet",
     items: [
       { icon: Bot, label: "Agents", href: "/agents" },
-      { icon: Users, label: "Team / Org", href: "/team" },
     ],
   },
   {

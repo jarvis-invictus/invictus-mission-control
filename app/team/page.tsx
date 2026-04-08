@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Sidebar from "@/components/dashboard/Sidebar";
 import { Users, Shield, Zap, Building2, GitBranch, Star, ChevronDown, ChevronUp } from "lucide-react";
 
 interface Agent {
@@ -226,6 +227,9 @@ export default function TeamPage() {
   const filtered = filterDept === "All" ? agents : agents.filter(a => a.department === filterDept);
 
   return (
+    <div className="flex h-screen bg-surface-0">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto">
     <div className="min-h-screen bg-background text-white">
       {/* Header */}
       <div className="border-b border-white/5 bg-surface-primary/80 backdrop-blur-sm sticky top-0 z-10">
@@ -330,6 +334,8 @@ export default function TeamPage() {
           </>
         )}
       </div>
+    </div>
+      </main>
     </div>
   );
 }

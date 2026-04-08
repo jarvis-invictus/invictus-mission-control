@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Sidebar from '@/components/dashboard/Sidebar';
 
 interface ContainerData {
   name: string;
@@ -210,6 +211,9 @@ export default function AuditPage() {
   const osAndOtherMb = ramUsedMb - totalContainerRam;
 
   return (
+    <div className="flex h-screen bg-surface-0">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto">
     <div className="min-h-screen bg-[#0d0d1a] text-white p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -393,6 +397,8 @@ export default function AuditPage() {
           </div>
         </div>
       </div>
+    </div>
+      </main>
     </div>
   );
 }

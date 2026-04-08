@@ -8,7 +8,6 @@ import { clsx } from "clsx";
 import Chart from "../charts/Chart";
 import type { EChartsOption } from "echarts";
 import AgentWorkspace from "./AgentWorkspace";
-import WorkspaceTreemap from "./WorkspaceTreemap";
 import AgentProfiles from "./AgentProfiles";
 
 /* ================================================================
@@ -706,11 +705,6 @@ export default function AgentControl() {
 
       {/* =============== AGENT PROFILES — PRIMARY SECTION =============== */}
       <AgentProfiles />
-
-      {/* =============== WORKSPACE OVERVIEW =============== */}
-      <div className="bg-surface-0 rounded-2xl border border-surface-5 p-6">
-        <WorkspaceTreemap />
-      </div>
 
       {/* =============== WORKSPACE BROWSER =============== */}
       <AgentWorkspace />
