@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/dashboard/Sidebar';
 
 interface ContainerData {
@@ -129,14 +129,10 @@ export default function AuditPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState('');
+  const [cleanupMsg, setCleanupMsg] = useState('');
+  const [cleaningUp, setCleaningUp] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  async function fetchData() {
+  const fetchData = useCallback(async () => {
     try {
       const res = await fetch('/api/audit');
       if (res.ok) {
@@ -146,6 +142,36 @@ export default function AuditPage() {
       }
     } catch (e) { console.error(e); }
     setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  async function runCleanup(action: string, label: string) {
+    if (!confirm(`Run "${label}"?`)) return;
+    setCleaningUp(true);
+    setCleanupMsg(`Running ${label}...`);
+    try {
+      const res = await fetch('/api/audit/cleanup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCleanupMsg(`✅ ${label} complete! Disk: ${data.diskAfter}`);
+        setTimeout(() => fetchData(), 2000);
+      } else {
+        setCleanupMsg(`❌ ${data.error || 'Failed'}`);
+      }
+    } catch {
+      setCleanupMsg('❌ Failed to connect to cleanup API');
+    }
+    setCleaningUp(false);
+    setTimeout(() => setCleanupMsg(''), 8000);
   }
 
   if (loading) return (
@@ -328,61 +354,60 @@ export default function AuditPage() {
           </div>
 
           {/* Cleanup Actions */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            <button
-              onClick={async () => {
-                if (!confirm('Clean up unused Docker images, containers, and networks?')) return;
-                try {
-                  const res = await fetch('/api/audit/cleanup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'docker-prune' }),
-                  });
-                  const data = await res.json();
-                  alert(data.success ? `✅ Docker cleaned!\n\nDisk after: ${data.diskAfter}` : `❌ ${data.error}`);
-                  fetchData();
-                } catch { alert('Failed to run cleanup'); }
-              }}
-              className="px-3 py-2 bg-brand-500/15 text-brand-400 text-xs font-medium rounded-lg hover:bg-brand-500/25 transition-colors border border-brand-500/20"
-            >
-              🧹 Prune Docker (Safe)
-            </button>
-            <button
-              onClick={async () => {
-                if (!confirm('Clear Docker build cache?')) return;
-                try {
-                  const res = await fetch('/api/audit/cleanup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'docker-build-cache' }),
-                  });
-                  const data = await res.json();
-                  alert(data.success ? `✅ Build cache cleared!\n\nDisk after: ${data.diskAfter}` : `❌ ${data.error}`);
-                  fetchData();
-                } catch { alert('Failed'); }
-              }}
-              className="px-3 py-2 bg-zinc-600/15 text-zinc-300 text-xs font-medium rounded-lg hover:bg-zinc-600/25 transition-colors border border-zinc-600/20"
-            >
-              🗑️ Clear Build Cache
-            </button>
-            <button
-              onClick={async () => {
-                if (!confirm('Vacuum system journal (keep last 3 days) + clear apt cache?')) return;
-                try {
-                  const res = await fetch('/api/audit/cleanup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'safe-all' }),
-                  });
-                  const data = await res.json();
-                  alert(data.success ? `✅ Full cleanup done!\n\nDisk after: ${data.diskAfter}\n\nDetails:\n${JSON.stringify(data.results, null, 2)}` : `❌ ${data.error}`);
-                  fetchData();
-                } catch { alert('Failed'); }
-              }}
-              className="px-3 py-2 bg-red-500/10 text-red-400 text-xs font-medium rounded-lg hover:bg-red-500/20 transition-colors border border-red-500/20"
-            >
-              ⚠️ Full Cleanup (All Safe)
-            </button>
+          <div className="space-y-2 mb-6">
+            <h3 className="text-md font-semibold text-zinc-300 mb-2">🧹 Cleanup Actions</h3>
+            {cleanupMsg && (
+              <div className={`px-4 py-2 rounded-lg text-sm ${cleanupMsg.startsWith('✅') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : cleanupMsg.startsWith('❌') ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-brand-400/10 text-brand-400 border border-brand-400/20'}`}>
+                {cleanupMsg}
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <button
+                onClick={() => runCleanup('node-modules', 'Clean old build files')}
+                disabled={cleaningUp}
+                className="text-left p-3 bg-surface-3 rounded-lg border border-surface-5 hover:border-brand-400/30 transition-colors disabled:opacity-50"
+              >
+                <div className="text-sm font-medium text-zinc-200">📦 Clean Old Build Files</div>
+                <div className="text-xs text-zinc-500 mt-1">Removes node_modules & .next from stale Linus projects (dental-nextjs-demo, ReportFlow, mc-dashboard). These are install artifacts that can be recreated.</div>
+                <div className="text-[10px] text-emerald-400 mt-1">Safe — no running services affected</div>
+              </button>
+              <button
+                onClick={() => runCleanup('docker-containers', 'Remove stopped containers')}
+                disabled={cleaningUp}
+                className="text-left p-3 bg-surface-3 rounded-lg border border-surface-5 hover:border-brand-400/30 transition-colors disabled:opacity-50"
+              >
+                <div className="text-sm font-medium text-zinc-200">🗑️ Remove Stopped Containers</div>
+                <div className="text-xs text-zinc-500 mt-1">Removes containers that have exited/crashed. Running containers (Jarvis, Linus, etc.) are NOT touched.</div>
+                <div className="text-[10px] text-emerald-400 mt-1">Safe — only removes already-stopped containers</div>
+              </button>
+              <button
+                onClick={() => runCleanup('docker-build-cache', 'Clear build cache')}
+                disabled={cleaningUp}
+                className="text-left p-3 bg-surface-3 rounded-lg border border-surface-5 hover:border-brand-400/30 transition-colors disabled:opacity-50"
+              >
+                <div className="text-sm font-medium text-zinc-200">🔨 Clear Docker Build Cache</div>
+                <div className="text-xs text-zinc-500 mt-1">Removes cached layers from previous builds. Next &quot;docker build&quot; will be slower, but no running services affected.</div>
+                <div className="text-[10px] text-emerald-400 mt-1">Safe — just makes next build slower</div>
+              </button>
+              <button
+                onClick={() => runCleanup('journal', 'Clean system logs')}
+                disabled={cleaningUp}
+                className="text-left p-3 bg-surface-3 rounded-lg border border-surface-5 hover:border-brand-400/30 transition-colors disabled:opacity-50"
+              >
+                <div className="text-sm font-medium text-zinc-200">📋 Clean Old System Logs</div>
+                <div className="text-xs text-zinc-500 mt-1">Removes system journal logs older than 3 days. Recent logs kept for debugging. Standard Linux maintenance.</div>
+                <div className="text-[10px] text-emerald-400 mt-1">Safe — keeps last 3 days of logs</div>
+              </button>
+              <button
+                onClick={() => runCleanup('docker-images', 'Remove unused images')}
+                disabled={cleaningUp}
+                className="text-left p-3 bg-surface-3 rounded-lg border border-surface-5 hover:border-amber-400/30 transition-colors disabled:opacity-50"
+              >
+                <div className="text-sm font-medium text-zinc-200">🐳 Remove Unused Docker Images</div>
+                <div className="text-xs text-zinc-500 mt-1">Removes images not used by any running container. If a stopped container needs restarting, its image may need to be re-pulled.</div>
+                <div className="text-[10px] text-amber-400 mt-1">Moderate — unused images will need re-download if needed later</div>
+              </button>
+            </div>
           </div>
 
           {/* Images list */}
