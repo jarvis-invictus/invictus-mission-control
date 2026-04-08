@@ -189,7 +189,7 @@ export default function AuditPage() {
     'Database (Supabase)': '#06b6d4',
     'Mission Control': '#10b981',
     'CRM': '#3b82f6',
-    'Infrastructure': '#CCFF00',
+    'Infrastructure': '#3B82F6',
     'Demos': '#ec4899',
     'Automation': '#f97316',
     'Other Services': '#64748b',

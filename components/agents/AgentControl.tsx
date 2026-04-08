@@ -434,13 +434,13 @@ function buildOrgTree(): EChartsOption {
           },
         },
         lineStyle: {
-          color: "#CCFF00",
+          color: "#3B82F6",
           width: 1.5,
           curveness: 0.5,
         },
         itemStyle: {
-          color: "#CCFF00",
-          borderColor: "#CCFF00",
+          color: "#3B82F6",
+          borderColor: "#3B82F6",
         },
         emphasis: {
           focus: "descendant",

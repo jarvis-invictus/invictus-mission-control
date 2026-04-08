@@ -95,7 +95,7 @@ const STAGES: Stage[] = ["NEW", "CONTACTED", "MEETING", "PROPOSAL", "WON", "LOST
 const TEMPERATURES: Temperature[] = ["HOT", "WARM", "COLD"];
 
 const stageConfig: Record<Stage, { label: string; color: string; bgColor: string; borderColor: string; headerBg: string; glowBorder: string; chartColor: string }> = {
-  NEW:       { label: "New",       color: "text-zinc-300",    bgColor: "bg-zinc-600",    borderColor: "border-zinc-600",   headerBg: "bg-zinc-800/60",      glowBorder: "border-zinc-400/50 shadow-[0_0_15px_rgba(161,161,170,0.15)]", chartColor: "#CCFF00" },
+  NEW:       { label: "New",       color: "text-zinc-300",    bgColor: "bg-zinc-600",    borderColor: "border-zinc-600",   headerBg: "bg-zinc-800/60",      glowBorder: "border-zinc-400/50 shadow-[0_0_15px_rgba(161,161,170,0.15)]", chartColor: "#3B82F6" },
   CONTACTED: { label: "Contacted", color: "text-brand-300",    bgColor: "bg-brand-600",    borderColor: "border-brand-600",   headerBg: "bg-brand-900/30",      glowBorder: "border-brand-400/50",   chartColor: "#00b4d8" },
   MEETING:   { label: "Meeting",   color: "text-zinc-300",  bgColor: "bg-zinc-600",  borderColor: "border-zinc-600", headerBg: "bg-zinc-800/30",    glowBorder: "border-zinc-400/50", chartColor: "#f59e0b" },
   PROPOSAL:  { label: "Proposal",  color: "text-amber-300",   bgColor: "bg-amber-600",   borderColor: "border-amber-600",  headerBg: "bg-amber-900/30",     glowBorder: "border-amber-400/50 shadow-[0_0_15px_rgba(251,191,36,0.2)]",  chartColor: "#f97316" },
@@ -365,7 +365,7 @@ function CRMAnalytics({
       data: nicheData.map(([n, c]) => ({
         value: c,
         itemStyle: {
-          color: n.toLowerCase() === "dental" ? "#22d3ee" : "#CCFF00",
+          color: n.toLowerCase() === "dental" ? "#22d3ee" : "#3B82F6",
         },
       })),
     }],

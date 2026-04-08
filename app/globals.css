@@ -7,7 +7,7 @@
 :root {
   --background: #000000;
   --foreground: #e4e4e7;
-  --brand: #CCFF00;
+  --brand: #3B82F6;
   --brand-dim: rgba(204, 255, 0, 0.1);
   --brand-glow: rgba(204, 255, 0, 0.15);
 }
@@ -34,7 +34,7 @@ body {
 
 /* Lemon green gradient text */
 .text-brand-gradient {
-  background: linear-gradient(135deg, #CCFF00, #a3cc00);
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

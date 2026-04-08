@@ -53,7 +53,7 @@ type DateRange = "all" | "today" | "7days" | "30days";
 
 // ── Status colors ──────────────────────────────────────
 const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string; hex: string }> = {
-  sent:      { bg: "bg-brand-400/10", text: "text-brand-400", dot: "bg-brand-400", hex: "#CCFF00" },
+  sent:      { bg: "bg-brand-400/10", text: "text-brand-400", dot: "bg-brand-400", hex: "#3B82F6" },
   delivered: { bg: "bg-emerald-500/10", text: "text-emerald-400", dot: "bg-emerald-400", hex: "#10b981" },
   opened:    { bg: "bg-zinc-700/30", text: "text-zinc-300", dot: "bg-zinc-400", hex: "#06b6d4" },
   pending:   { bg: "bg-amber-500/10", text: "text-amber-400", dot: "bg-amber-400", hex: "#f59e0b" },
@@ -161,8 +161,8 @@ function AnalyticsTab({ emails }: { emails: EmailRecord[] }) {
         type: "line",
         data: sampleSent,
         smooth: true,
-        lineStyle: { color: "#CCFF00", width: 2 },
-        itemStyle: { color: "#CCFF00" },
+        lineStyle: { color: "#3B82F6", width: 2 },
+        itemStyle: { color: "#3B82F6" },
         areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(204,255,0,0.2)" }, { offset: 1, color: "rgba(204,255,0,0)" }] } as unknown as string },
         animationDuration: 1500,
         animationEasing: "cubicOut",
@@ -204,7 +204,7 @@ function AnalyticsTab({ emails }: { emails: EmailRecord[] }) {
         label: { show: false },
         emphasis: { label: { show: true, fontSize: 14, fontWeight: "bold", color: "#fff" } },
         data: [
-          { value: statusCounts.sent, name: "Sent", itemStyle: { color: "#CCFF00" } },
+          { value: statusCounts.sent, name: "Sent", itemStyle: { color: "#3B82F6" } },
           { value: statusCounts.delivered, name: "Delivered", itemStyle: { color: "#10b981" } },
           { value: statusCounts.opened, name: "Opened", itemStyle: { color: "#06b6d4" } },
           { value: statusCounts.bounced, name: "Bounced", itemStyle: { color: "#f59e0b" } },

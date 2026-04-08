@@ -17,7 +17,7 @@ const AGENTS: AgentDef[] = [
   { id: "elon", name: "Elon", role: "Fleet Commander", emoji: "🎖️", container: "openclaw-elon", active: true },
   { id: "linus", name: "Linus", role: "CTO", emoji: "⚙️", container: "openclaw-linus", active: true },
   { id: "jordan", name: "Jordan", role: "CRO", emoji: "📞", container: "openclaw-jordan", active: true },
-  { id: "gary", name: "Gary", role: "CMO", emoji: "📣", container: "openclaw-gary", active: true },
+  { id: "gary", name: "Gary", role: "CMO", emoji: "📣", container: "openclaw-gary", active: false },
   { id: "friend", name: "Friend", role: "Companion", emoji: "👋", container: "openclaw-friend", active: true },
   { id: "warren", name: "Warren", role: "CSO", emoji: "📊", container: "openclaw-warren", active: false },
   { id: "ray", name: "Ray", role: "CFO", emoji: "💰", container: "openclaw-ray", active: false },
@@ -25,6 +25,11 @@ const AGENTS: AgentDef[] = [
   { id: "steve", name: "Steve", role: "CCO", emoji: "✍️", container: "openclaw-steve", active: false },
   { id: "jeff", name: "Jeff", role: "CDO", emoji: "📦", container: "openclaw-jeff", active: false },
 ];
+
+/* ============================================================
+ * PERFORMANCE FIX: One docker inspect + one docker stats call
+ * instead of per-container calls (was 9s → now <2s)
+ * ============================================================ */
 
 interface ContainerInfo {
   status: "running" | "stopped" | "not_found";
@@ -35,101 +40,107 @@ interface ContainerInfo {
   ip?: string;
 }
 
-function getContainerInfo(containerName: string): ContainerInfo {
+function batchContainerInfo(agents: AgentDef[]): Map<string, ContainerInfo> {
+  const result = new Map<string, ContainerInfo>();
+  const activeContainers = agents.filter(a => a.active).map(a => a.container);
+
+  // Batch inspect — one call for all containers
+  const inspectMap = new Map<string, { status: string; startedAt: string; ip: string }>();
   try {
-    // Check if container exists and is running
-    const inspect = execSync(
-      `docker inspect ${containerName} --format '{{.State.Status}}|||{{.State.StartedAt}}|||{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' 2>/dev/null`,
+    const raw = execSync(
+      `docker inspect ${activeContainers.join(" ")} --format '{{.Name}}|||{{.State.Status}}|||{{.State.StartedAt}}|||{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' 2>/dev/null`,
       { timeout: 5000 }
     ).toString().trim();
-
-    const [status, startedAt, ip] = inspect.split("|||");
-
-    if (status !== "running") {
-      return { status: "stopped" };
+    for (const line of raw.split("\n")) {
+      const [rawName, status, startedAt, ip] = line.split("|||");
+      const name = rawName.replace(/^\//, "");
+      inspectMap.set(name, { status, startedAt, ip });
     }
+  } catch {}
 
-    // Calculate uptime
-    const startDate = new Date(startedAt);
-    const now = new Date();
-    const diffMs = now.getTime() - startDate.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    const uptime = diffHours > 24
-      ? `${Math.floor(diffHours / 24)}d ${diffHours % 24}h`
-      : diffHours > 0
-        ? `${diffHours}h ${diffMins}m`
-        : `${diffMins}m`;
-
-    // Get memory usage
-    let memoryMB = 0;
-    let cpuPercent = 0;
+  // Batch stats — ONE docker stats call for all running containers
+  const runningContainers = activeContainers.filter(c => inspectMap.get(c)?.status === "running");
+  const statsMap = new Map<string, { memMB: number; cpu: number }>();
+  if (runningContainers.length > 0) {
     try {
-      const stats = execSync(
-        `docker stats ${containerName} --no-stream --format '{{.MemUsage}}|||{{.CPUPerc}}' 2>/dev/null`,
+      const raw = execSync(
+        `docker stats ${runningContainers.join(" ")} --no-stream --format '{{.Name}}|||{{.MemUsage}}|||{{.CPUPerc}}' 2>/dev/null`,
         { timeout: 8000 }
       ).toString().trim();
-      const [memStr, cpuStr] = stats.split("|||");
-      // Parse "123.4MiB / 3.5GiB" → 123.4
-      const memMatch = memStr.match(/([\d.]+)(MiB|GiB)/);
-      if (memMatch) {
-        memoryMB = memMatch[2] === "GiB"
-          ? parseFloat(memMatch[1]) * 1024
-          : parseFloat(memMatch[1]);
+      for (const line of raw.split("\n")) {
+        const [name, memStr, cpuStr] = line.split("|||");
+        let memMB = 0;
+        const memMatch = memStr?.match(/([\d.]+)(MiB|GiB)/);
+        if (memMatch) {
+          memMB = memMatch[2] === "GiB" ? parseFloat(memMatch[1]) * 1024 : parseFloat(memMatch[1]);
+        }
+        statsMap.set(name, { memMB: Math.round(memMB), cpu: Math.round((parseFloat(cpuStr) || 0) * 10) / 10 });
       }
-      cpuPercent = parseFloat(cpuStr) || 0;
     } catch {}
+  }
 
-    return {
+  const now = Date.now();
+
+  for (const agent of agents) {
+    if (!agent.active) {
+      result.set(agent.id, { status: "stopped" });
+      continue;
+    }
+    const info = inspectMap.get(agent.container);
+    if (!info || info.status !== "running") {
+      result.set(agent.id, { status: info ? "stopped" : "not_found" });
+      continue;
+    }
+    const diffMs = now - new Date(info.startedAt).getTime();
+    const h = Math.floor(diffMs / 3600000);
+    const m = Math.floor((diffMs % 3600000) / 60000);
+    const uptime = h > 24 ? `${Math.floor(h/24)}d ${h%24}h` : h > 0 ? `${h}h ${m}m` : `${m}m`;
+    const stats = statsMap.get(agent.container);
+    result.set(agent.id, {
       status: "running",
       uptime,
-      startedAt,
-      memoryMB: Math.round(memoryMB),
-      cpuPercent: Math.round(cpuPercent * 10) / 10,
-      ip,
-    };
-  } catch {
-    return { status: "not_found" };
+      startedAt: info.startedAt,
+      ip: info.ip,
+      memoryMB: stats?.memMB || 0,
+      cpuPercent: stats?.cpu || 0,
+    });
   }
+
+  return result;
 }
 
 export async function GET() {
-  const results = AGENTS.map((agent) => {
-    const info = agent.active ? getContainerInfo(agent.container) : { status: "stopped" as const };
-    return {
-      ...agent,
-      ...info,
-    };
-  });
+  const infoMap = batchContainerInfo(AGENTS);
 
-  // System stats
+  const results = AGENTS.map((agent) => ({
+    ...agent,
+    ...(infoMap.get(agent.id) || { status: "not_found" }),
+  }));
+
+  // System stats — single call
   let systemStats = { totalMemoryMB: 0, usedMemoryMB: 0, cpuCores: 0, loadAvg: "" };
   try {
-    const memInfo = execSync("free -m | grep Mem", { timeout: 3000 }).toString().trim();
-    const parts = memInfo.split(/\s+/);
+    const raw = execSync("free -m | grep Mem; echo '---'; nproc; echo '---'; cat /proc/loadavg", { timeout: 3000 }).toString();
+    const [memLine, , cpuLine, , loadLine] = raw.split("\n");
+    const parts = memLine.split(/\s+/);
     systemStats.totalMemoryMB = parseInt(parts[1]) || 0;
     systemStats.usedMemoryMB = parseInt(parts[2]) || 0;
-
-    const cpuInfo = execSync("nproc", { timeout: 3000 }).toString().trim();
-    systemStats.cpuCores = parseInt(cpuInfo) || 0;
-
-    const loadAvg = execSync("cat /proc/loadavg", { timeout: 3000 }).toString().trim();
-    systemStats.loadAvg = loadAvg.split(" ").slice(0, 3).join(" ");
+    systemStats.cpuCores = parseInt(cpuLine) || 0;
+    systemStats.loadAvg = loadLine?.split(" ").slice(0, 3).join(" ") || "";
   } catch {}
 
-  const running = results.filter(r => r.status === "running").length;
-  const total = results.length;
   const activeAgents = results.filter(r => r.active);
-
   return NextResponse.json({
     agents: results,
     summary: {
-      running,
-      total,
+      running: results.filter(r => r.status === "running").length,
+      total: results.length,
       activeOnline: activeAgents.filter(r => r.status === "running").length,
       activeTotal: activeAgents.length,
     },
     system: systemStats,
     timestamp: new Date().toISOString(),
+  }, {
+    headers: { "Cache-Control": "public, max-age=10, stale-while-revalidate=30" },
   });
 }
