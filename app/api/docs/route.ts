@@ -58,101 +58,122 @@ function countWords(text: string): number {
   return text.split(/\s+/).filter(Boolean).length;
 }
 
+const AGENTS_BASE = "/workspace/agents";
+const AGENT_NAMES = ["elon", "jordan", "gary", "linus", "friend", "jarvis"];
+
+type DocEntry = {
+  slug: string;
+  filename: string;
+  title: string;
+  category: string;
+  agent: string;
+  size: number;
+  modified: string;
+  preview: string;
+  wordCount: number;
+};
+
+function readDocFile(filePath: string, filename: string, category: string, agent: string): DocEntry | null {
+  let stat: fs.Stats;
+  try { stat = fs.statSync(filePath); } catch { return null; }
+
+  let content: string;
+  try { content = fs.readFileSync(filePath, "utf-8"); } catch { return null; }
+
+  const title = extractTitle(content, filename);
+  const preview = content
+    .replace(/^#+\s+.+$/gm, "")
+    .replace(/[#*_>`\[\]]/g, "")
+    .trim()
+    .slice(0, 200);
+
+  return {
+    slug: `${agent}__${filename.replace(/\.md$/, "")}`,
+    filename,
+    title,
+    category,
+    agent,
+    size: stat.size,
+    modified: stat.mtime.toISOString(),
+    preview,
+    wordCount: countWords(content),
+  };
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const search = (searchParams.get("search") || "").toLowerCase();
     const category = (searchParams.get("category") || "").toLowerCase();
+    const agentFilter = (searchParams.get("agent") || "").toLowerCase();
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "0", 10);
 
-    if (!fs.existsSync(DOCS_DIR)) {
-      console.warn(`[docs API] Directory does not exist: ${DOCS_DIR}`);
-      return NextResponse.json({
-        docs: [],
-        total: 0,
-        docsPath: DOCS_DIR,
-        message: `Docs directory not found: ${DOCS_DIR}`,
-      });
+    const docs: DocEntry[] = [];
+
+    // Scan shared docs
+    if (fs.existsSync(DOCS_DIR)) {
+      let entries: fs.Dirent[] = [];
+      try { entries = fs.readdirSync(DOCS_DIR, { withFileTypes: true }); } catch { /* skip */ }
+
+      for (const entry of entries) {
+        if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
+        const cat = categorize(entry.name);
+        if (category && category !== "all" && cat !== category) continue;
+        const doc = readDocFile(path.join(DOCS_DIR, entry.name), entry.name, cat, "shared");
+        if (doc) {
+          doc.slug = entry.name.replace(/\.md$/, "");
+          docs.push(doc);
+        }
+      }
     }
 
-    let entries: fs.Dirent[];
-    try {
-      entries = fs.readdirSync(DOCS_DIR, { withFileTypes: true });
-    } catch (err) {
-      console.error(`[docs API] Failed to read directory ${DOCS_DIR}:`, err);
-      return NextResponse.json({
-        docs: [],
-        total: 0,
-        docsPath: DOCS_DIR,
-        message: `Cannot read docs directory: ${DOCS_DIR}`,
-      });
-    }
+    // Scan agent workspaces
+    for (const agentName of AGENT_NAMES) {
+      if (agentFilter && agentFilter !== "all" && agentFilter !== agentName) continue;
 
-    const docs: Array<{
-      slug: string;
-      filename: string;
-      title: string;
-      category: string;
-      size: number;
-      modified: string;
-      preview: string;
-      wordCount: number;
-    }> = [];
+      const agentBase = path.join(AGENTS_BASE, agentName);
+      if (!fs.existsSync(agentBase)) continue;
 
-    for (const entry of entries) {
-      if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
-
-      const filePath = path.join(DOCS_DIR, entry.name);
-      let stat: fs.Stats;
+      // Top-level .md files (SOUL.md, MEMORY.md, etc.)
       try {
-        stat = fs.statSync(filePath);
-      } catch {
-        continue;
+        const topEntries = fs.readdirSync(agentBase, { withFileTypes: true });
+        for (const entry of topEntries) {
+          if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
+          if (category && category !== "all" && category !== "agent-config") continue;
+          const doc = readDocFile(path.join(agentBase, entry.name), entry.name, "agent-config", agentName);
+          if (doc) docs.push(doc);
+        }
+      } catch { /* skip */ }
+
+      // docs/ subfolder
+      const agentDocsDir = path.join(agentBase, "docs");
+      if (fs.existsSync(agentDocsDir)) {
+        try {
+          const docEntries = fs.readdirSync(agentDocsDir, { withFileTypes: true });
+          for (const entry of docEntries) {
+            if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
+            const cat = categorize(entry.name);
+            if (category && category !== "all" && cat !== category) continue;
+            const doc = readDocFile(path.join(agentDocsDir, entry.name), entry.name, cat, agentName);
+            if (doc) docs.push(doc);
+          }
+        } catch { /* skip */ }
       }
-
-      let content: string;
-      try {
-        content = fs.readFileSync(filePath, "utf-8");
-      } catch {
-        continue;
-      }
-
-      const cat = categorize(entry.name);
-
-      if (category && category !== "all" && cat !== category) continue;
-
-      const title = extractTitle(content, entry.name);
-      const preview = content
-        .replace(/^#+\s+.+$/gm, "")
-        .replace(/[#*_>`\[\]]/g, "")
-        .trim()
-        .slice(0, 200);
-
-      if (search) {
-        const haystack = `${entry.name} ${title} ${content}`.toLowerCase();
-        if (!haystack.includes(search)) continue;
-      }
-
-      docs.push({
-        slug: entry.name.replace(/\.md$/, ""),
-        filename: entry.name,
-        title,
-        category: cat,
-        size: stat.size,
-        modified: stat.mtime.toISOString(),
-        preview,
-        wordCount: countWords(content),
-      });
     }
 
-    docs.sort((a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime());
+    // Apply search filter
+    const filtered = search
+      ? docs.filter((d) => `${d.filename} ${d.title} ${d.preview}`.toLowerCase().includes(search))
+      : docs;
 
-    const total = docs.length;
+    filtered.sort((a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime());
+
+    const total = filtered.length;
 
     if (limit > 0) {
       const start = (page - 1) * limit;
-      const paged = docs.slice(start, start + limit);
+      const paged = filtered.slice(start, start + limit);
       return NextResponse.json({
         docs: paged,
         total,
@@ -163,7 +184,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ docs, total, docsPath: DOCS_DIR });
+    return NextResponse.json({ docs: filtered, total, docsPath: DOCS_DIR });
   } catch (err) {
     console.error("[docs API] Unexpected error:", err);
     return NextResponse.json(
